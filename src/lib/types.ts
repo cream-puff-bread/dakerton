@@ -158,3 +158,13 @@ export interface RankingEntry {
   points: number;
   participationCount: number;
 }
+
+export interface User {
+  id: string;
+  email: string;
+  password: string;
+  nickname: string;
+  preferredPositions: string[];
+  bio: string;
+  createdAt: string;
+}
