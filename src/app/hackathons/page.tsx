@@ -1,5 +1,6 @@
 'use client';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Calendar, Users, Search } from 'lucide-react';
@@ -43,14 +44,32 @@ function formatDate(iso: string) {
 }
 
 export default function HackathonsPage() {
+  return (
+    <Suspense fallback={<Loading />}>
+      <HackathonsContent />
+    </Suspense>
+  );
+}
+
+function HackathonsContent() {
+  const searchParams = useSearchParams();
+  const urlQuery = searchParams.get('q') || '';
   const [hackathons, , loaded] = useLocalStorage<Hackathon[]>('hackathons', []);
   const [activeFilter, setActiveFilter] = useState<HackathonStatus>('all');
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(urlQuery);
+  const [tagFilter, setTagFilter] = useState<string | null>(null);
+
+  const allTags = useMemo(() => {
+    const tags = new Set<string>();
+    hackathons.forEach((h) => h.tags.forEach((t) => tags.add(t)));
+    return Array.from(tags);
+  }, [hackathons]);
 
   const filtered = useMemo(
     () =>
       hackathons.filter((h) => {
         if (activeFilter !== 'all' && h.status !== activeFilter) return false;
+        if (tagFilter && !h.tags.includes(tagFilter)) return false;
         if (
           search &&
           !h.title.toLowerCase().includes(search.toLowerCase()) &&
@@ -59,7 +78,7 @@ export default function HackathonsPage() {
           return false;
         return true;
       }),
-    [hackathons, activeFilter, search],
+    [hackathons, activeFilter, search, tagFilter],
   );
 
   if (!loaded) return <Loading />;
@@ -108,6 +127,25 @@ export default function HackathonsPage() {
             ))}
           </div>
         </div>
+
+        {/* Tag filters */}
+        {allTags.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-8">
+            {allTags.map((tag) => (
+              <button
+                key={tag}
+                onClick={() => setTagFilter(tagFilter === tag ? null : tag)}
+                className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-colors ${
+                  tagFilter === tag
+                    ? 'bg-primary text-white'
+                    : 'bg-zinc-50 dark:bg-zinc-800/50 text-zinc-500 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+                }`}
+              >
+                #{tag}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Cards */}
         {filtered.length === 0 ? (

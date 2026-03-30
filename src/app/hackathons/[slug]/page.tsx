@@ -10,6 +10,8 @@ import {
   FileText,
   Send,
   BarChart3,
+  Info,
+  AlertTriangle,
 } from 'lucide-react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { useToast } from '@/components/Toast';
@@ -19,6 +21,7 @@ import {
   Leaderboard,
   Submission,
   Invitation,
+  Hackathon,
 } from '@/lib/types';
 import {
   Loading,
@@ -26,12 +29,12 @@ import {
   Countdown,
   ProgressBar,
   Empty,
-  Tag,
 } from '@/components/UI';
 import { Badge } from '@/components/ui/badge';
 
 const tabItems = [
   { label: '개요', icon: FileText },
+  { label: '안내', icon: Info },
   { label: '평가', icon: BarChart3 },
   { label: '일정', icon: Clock },
   { label: '상금', icon: Trophy },
@@ -63,6 +66,7 @@ export default function HackathonDetailPage({
     'hackathon_details',
     [],
   );
+  const [hackathons] = useLocalStorage<Hackathon[]>('hackathons', []);
   const [teams, setTeams] = useLocalStorage<Team[]>('teams', []);
   const [leaderboards] = useLocalStorage<Leaderboard[]>('leaderboards', []);
   const [submissions, setSubmissions] = useLocalStorage<Submission[]>(
@@ -84,6 +88,10 @@ export default function HackathonDetailPage({
     () => details.find((d) => d.slug === slug),
     [details, slug],
   );
+  const hackathon = useMemo(
+    () => hackathons.find((h) => h.slug === slug),
+    [hackathons, slug],
+  );
   const hackTeams = useMemo(
     () => teams.filter((t) => t.hackathonSlug === slug),
     [teams, slug],
@@ -96,6 +104,13 @@ export default function HackathonDetailPage({
     () => invitations.filter((i) => i.hackathonSlug === slug),
     [invitations, slug],
   );
+
+  const isSubmissionClosed = useMemo(() => {
+    if (!hackathon) return false;
+    return new Date(hackathon.period.submissionDeadlineAt).getTime() < Date.now();
+  }, [hackathon]);
+
+  const isEnded = hackathon?.status === 'ended';
 
   useEffect(() => {
     if (detail?.sections.submit.allowedArtifactTypes[0])
@@ -131,6 +146,10 @@ export default function HackathonDetailPage({
   );
 
   const handleSubmit = () => {
+    if (isSubmissionClosed) {
+      toast('제출 기간이 종료되었습니다.', 'error');
+      return;
+    }
     if (!submitContent.trim()) {
       toast('제출 내용을 입력해 주세요.', 'error');
       return;
@@ -241,6 +260,12 @@ export default function HackathonDetailPage({
               <Countdown targetDate={nextMilestone.at} />
             </div>
           )}
+          {isEnded && (
+            <div className="flex items-center gap-2 mb-4 px-4 py-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-sm text-muted-foreground">
+              <AlertTriangle size={14} />
+              이 해커톤은 종료되었습니다.
+            </div>
+          )}
           <ProgressBar value={progress} />
           <p className="text-xs text-muted-foreground mt-2 mb-8">
             {Math.round(progress)}% 진행 ({completedMilestones}/
@@ -253,7 +278,7 @@ export default function HackathonDetailPage({
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="relative flex gap-1 overflow-x-auto mb-8 -mx-1 px-1"
+          className="relative flex gap-1 overflow-x-auto mb-8 -mx-1 px-1 pb-1"
         >
           {tabItems.map((t, i) => {
             const Icon = t.icon;
@@ -262,7 +287,6 @@ export default function HackathonDetailPage({
                 key={t.label}
                 onClick={() => setActiveTab(i)}
                 className="relative px-4 py-2 text-[13px] font-semibold rounded-xl whitespace-nowrap transition-colors z-10"
-                style={{ color: activeTab === i ? undefined : undefined }}
               >
                 {activeTab === i && (
                   <motion.div
@@ -309,8 +333,37 @@ export default function HackathonDetailPage({
                     )}
                   </div>
                 </div>
+                {hackathon?.participantCount != null && (
+                  <div className={cardCls}>
+                    <h3 className="font-bold mb-3">참가 현황</h3>
+                    <div className="grid grid-cols-3 gap-4 text-center">
+                      <div>
+                        <p className="text-2xl font-bold text-primary">
+                          {hackathon.participantCount}
+                        </p>
+                        <p className="text-xs text-muted-foreground">참가자</p>
+                      </div>
+                      <div>
+                        <p className="text-2xl font-bold">{hackTeams.length}</p>
+                        <p className="text-xs text-muted-foreground">등록 팀</p>
+                      </div>
+                      <div>
+                        <p className="text-2xl font-bold">
+                          {submissions.filter((sub) => sub.hackathonSlug === slug).length}
+                        </p>
+                        <p className="text-xs text-muted-foreground">제출물</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* 안내 */}
+            {activeTab === 1 && (
+              <div className="space-y-4">
                 <div className={cardCls}>
-                  <h3 className="font-bold mb-3">안내사항</h3>
+                  <h3 className="font-bold mb-3">공지사항</h3>
                   <div className="space-y-2.5">
                     {s.info.notice.map((n, i) => (
                       <p
@@ -318,17 +371,8 @@ export default function HackathonDetailPage({
                         className="text-sm text-muted-foreground flex gap-2.5 leading-relaxed"
                       >
                         <span className="text-primary shrink-0 mt-0.5">
-                          <svg
-                            width="14"
-                            height="14"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                              clipRule="evenodd"
-                            />
+                          <svg width="14" height="14" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                           </svg>
                         </span>
                         {n}
@@ -336,11 +380,25 @@ export default function HackathonDetailPage({
                     ))}
                   </div>
                 </div>
+                <div className={cardCls}>
+                  <h3 className="font-bold mb-3">참가 규칙</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed mb-3">
+                    참가 규칙 및 FAQ는 아래 링크를 확인해 주세요.
+                  </p>
+                  <div className="flex gap-3">
+                    <a href={s.info.links.rules} target="_blank" rel="noopener noreferrer" className="text-sm text-primary font-medium hover:underline">
+                      규칙 보기 →
+                    </a>
+                    <a href={s.info.links.faq} target="_blank" rel="noopener noreferrer" className="text-sm text-primary font-medium hover:underline">
+                      FAQ →
+                    </a>
+                  </div>
+                </div>
               </div>
             )}
 
             {/* 평가 */}
-            {activeTab === 1 && (
+            {activeTab === 2 && (
               <div className={cardCls}>
                 <h3 className="font-bold mb-1">{s.eval.metricName}</h3>
                 <p className="text-sm text-muted-foreground mb-5">
@@ -352,9 +410,7 @@ export default function HackathonDetailPage({
                       <div key={b.key}>
                         <div className="flex justify-between text-sm mb-1.5">
                           <span className="font-medium">{b.label}</span>
-                          <span className="text-primary font-bold">
-                            {b.weightPercent}%
-                          </span>
+                          <span className="text-primary font-bold">{b.weightPercent}%</span>
                         </div>
                         <div className="h-2 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
                           <motion.div
@@ -371,25 +427,20 @@ export default function HackathonDetailPage({
                 {s.eval.limits && (
                   <div className="mt-6 pt-5 border-t border-zinc-100 dark:border-zinc-800 flex gap-6 text-sm text-muted-foreground">
                     <span>실행 제한: {s.eval.limits.maxRuntimeSec}초</span>
-                    <span>
-                      일일 제출: {s.eval.limits.maxSubmissionsPerDay}회
-                    </span>
+                    <span>일일 제출: {s.eval.limits.maxSubmissionsPerDay}회</span>
                   </div>
                 )}
               </div>
             )}
 
             {/* 일정 */}
-            {activeTab === 2 && (
+            {activeTab === 3 && (
               <div className={cardCls}>
                 <h3 className="font-bold mb-6">타임라인</h3>
                 <div className="space-y-0">
                   {milestones.map((m, i) => {
                     const passed = new Date(m.at).getTime() < Date.now();
-                    const isNext =
-                      !passed &&
-                      (i === 0 ||
-                        new Date(milestones[i - 1].at).getTime() < Date.now());
+                    const isNext = !passed && (i === 0 || new Date(milestones[i - 1].at).getTime() < Date.now());
                     return (
                       <motion.div
                         key={i}
@@ -399,24 +450,16 @@ export default function HackathonDetailPage({
                         className="flex gap-4"
                       >
                         <div className="flex flex-col items-center">
-                          <div
-                            className={`w-2.5 h-2.5 rounded-full ${passed ? 'bg-primary' : isNext ? 'bg-primary ring-4 ring-primary/20' : 'bg-zinc-200 dark:bg-zinc-700'}`}
-                          />
+                          <div className={`w-2.5 h-2.5 rounded-full ${passed ? 'bg-primary' : isNext ? 'bg-primary ring-4 ring-primary/20' : 'bg-zinc-200 dark:bg-zinc-700'}`} />
                           {i < milestones.length - 1 && (
-                            <div
-                              className={`w-px flex-1 min-h-[44px] ${passed ? 'bg-primary' : 'bg-zinc-100 dark:bg-zinc-800'}`}
-                            />
+                            <div className={`w-px flex-1 min-h-[44px] ${passed ? 'bg-primary' : 'bg-zinc-100 dark:bg-zinc-800'}`} />
                           )}
                         </div>
                         <div className="pb-7 -mt-1">
-                          <p
-                            className={`text-sm font-medium ${isNext ? 'text-primary' : passed ? 'text-muted-foreground' : 'text-foreground'}`}
-                          >
+                          <p className={`text-sm font-medium ${isNext ? 'text-primary' : passed ? 'text-muted-foreground' : 'text-foreground'}`}>
                             {m.name}
                           </p>
-                          <p className="text-xs text-muted-foreground mt-0.5">
-                            {formatDate(m.at)}
-                          </p>
+                          <p className="text-xs text-muted-foreground mt-0.5">{formatDate(m.at)}</p>
                           {isNext && (
                             <div className="mt-1.5">
                               <Countdown targetDate={m.at} />
@@ -431,8 +474,8 @@ export default function HackathonDetailPage({
             )}
 
             {/* 상금 */}
-            {activeTab === 3 &&
-              (s.prize?.items ? (
+            {activeTab === 4 && (s.prize?.items ? (
+              <div className="space-y-4">
                 <div className="grid sm:grid-cols-3 gap-3">
                   {s.prize.items.map((p, i) => (
                     <motion.div
@@ -442,24 +485,25 @@ export default function HackathonDetailPage({
                       transition={{ delay: i * 0.1 }}
                       className={`${cardCls} text-center`}
                     >
-                      <p className="text-3xl mb-2">
-                        {['🥇', '🥈', '🥉'][i] || '🏅'}
-                      </p>
-                      <p className="text-xs text-muted-foreground mb-1">
-                        {p.place}
-                      </p>
-                      <p className="text-xl font-bold">
-                        {formatKRW(p.amountKRW)}
-                      </p>
+                      <p className="text-3xl mb-2">{['🥇', '🥈', '🥉'][i] || '🏅'}</p>
+                      <p className="text-xs text-muted-foreground mb-1">{p.place}</p>
+                      <p className="text-xl font-bold">{formatKRW(p.amountKRW)}</p>
                     </motion.div>
                   ))}
                 </div>
-              ) : (
-                <Empty message="상금 정보가 없습니다." />
-              ))}
+                <div className={cardCls}>
+                  <h3 className="font-bold mb-2">총 상금</h3>
+                  <p className="text-2xl font-bold text-primary">
+                    {formatKRW(s.prize.items.reduce((acc, p) => acc + p.amountKRW, 0))}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <Empty message="상금 정보가 없습니다." />
+            ))}
 
             {/* 팀 */}
-            {activeTab === 4 && (
+            {activeTab === 5 && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="font-bold">참가 팀 ({hackTeams.length})</h3>
@@ -474,28 +518,13 @@ export default function HackathonDetailPage({
                     animate={{ opacity: 1, scale: 1 }}
                     className="rounded-2xl border-2 border-primary/30 bg-primary/5 p-5"
                   >
-                    <p className="text-sm font-bold text-primary mb-3">
-                      받은 초대 ({myPendingInvites.length})
-                    </p>
+                    <p className="text-sm font-bold text-primary mb-3">받은 초대 ({myPendingInvites.length})</p>
                     {myPendingInvites.map((inv) => (
-                      <div
-                        key={inv.id}
-                        className="flex items-center justify-between gap-3 py-2"
-                      >
+                      <div key={inv.id} className="flex items-center justify-between gap-3 py-2">
                         <span className="text-sm">{inv.teamName}</span>
                         <div className="flex gap-2">
-                          <button
-                            onClick={() => handleInviteResponse(inv.id, true)}
-                            className="text-xs px-3 py-1.5 rounded-lg bg-primary text-white font-semibold"
-                          >
-                            수락
-                          </button>
-                          <button
-                            onClick={() => handleInviteResponse(inv.id, false)}
-                            className={btnSecondary + ' !text-xs !px-3 !py-1.5'}
-                          >
-                            거절
-                          </button>
+                          <button onClick={() => handleInviteResponse(inv.id, true)} className="text-xs px-3 py-1.5 rounded-lg bg-primary text-white font-semibold">수락</button>
+                          <button onClick={() => handleInviteResponse(inv.id, false)} className={btnSecondary + ' !text-xs !px-3 !py-1.5'}>거절</button>
                         </div>
                       </div>
                     ))}
@@ -511,28 +540,21 @@ export default function HackathonDetailPage({
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.05 }}
-                      className={
-                        cardCls +
-                        ' hover:border-zinc-300 dark:hover:border-zinc-600 transition-colors'
-                      }
+                      className={cardCls + ' hover:border-zinc-300 dark:hover:border-zinc-600 transition-colors'}
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
                           <div className="flex items-center gap-2 mb-1.5">
                             <h4 className="font-bold">{t.name}</h4>
-                            <Badge variant={t.isOpen ? 'default' : 'secondary'}>
-                              {t.isOpen ? '모집중' : '완료'}
-                            </Badge>
+                            <Badge variant={t.isOpen ? 'default' : 'secondary'}>{t.isOpen ? '모집중' : '완료'}</Badge>
                           </div>
-                          <p className="text-sm text-muted-foreground mb-2">
-                            {t.intro}
-                          </p>
-                          <div className="flex gap-1.5 flex-wrap">
-                            <p className="text-xs text-muted-foreground">
-                              {t.memberCount}/
-                              {s.overview.teamPolicy.maxTeamSize}명
-                            </p>
+                          <p className="text-sm text-muted-foreground mb-2">{t.intro}</p>
+                          <div className="flex gap-1.5 flex-wrap mb-1.5">
+                            {t.lookingFor.map((lf) => (
+                              <Badge key={lf} variant="outline">{lf}</Badge>
+                            ))}
                           </div>
+                          <p className="text-xs text-muted-foreground">{t.memberCount}/{s.overview.teamPolicy.maxTeamSize}명</p>
                         </div>
                         <div className="flex flex-col gap-2 shrink-0">
                           <button
@@ -540,7 +562,7 @@ export default function HackathonDetailPage({
                             disabled={!t.isOpen}
                             className="text-xs px-3 py-2 rounded-xl bg-primary text-white font-semibold disabled:opacity-30 disabled:cursor-not-allowed hover:opacity-90 transition-opacity"
                           >
-                            초대
+                            초대 보내기
                           </button>
                           <a
                             href={t.contact.url}
@@ -565,15 +587,9 @@ export default function HackathonDetailPage({
                     >
                       <h3 className="font-bold text-lg mb-2">인원 초과</h3>
                       <p className="text-sm text-muted-foreground mb-6">
-                        이 해커톤의 최대 팀 인원은{' '}
-                        {s.overview.teamPolicy.maxTeamSize}명입니다.
+                        이 해커톤의 최대 팀 인원은 {s.overview.teamPolicy.maxTeamSize}명입니다.
                       </p>
-                      <button
-                        onClick={() => setShowInviteModal(false)}
-                        className={btnPrimary + ' w-full'}
-                      >
-                        확인
-                      </button>
+                      <button onClick={() => setShowInviteModal(false)} className={btnPrimary + ' w-full'}>확인</button>
                     </motion.div>
                   </div>
                 )}
@@ -581,19 +597,20 @@ export default function HackathonDetailPage({
             )}
 
             {/* 제출 */}
-            {activeTab === 5 && (
+            {activeTab === 6 && (
               <div className="space-y-4">
+                {isSubmissionClosed && (
+                  <div className="flex items-center gap-2 p-4 rounded-2xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-sm text-red-600 dark:text-red-400">
+                    <AlertTriangle size={16} />
+                    제출 기간이 종료되었습니다.
+                  </div>
+                )}
                 <div className={cardCls}>
                   <h3 className="font-bold mb-4">제출 가이드</h3>
                   <div className="space-y-2">
                     {s.submit.guide.map((g, i) => (
-                      <p
-                        key={i}
-                        className="text-sm text-muted-foreground flex gap-2"
-                      >
-                        <span className="text-primary font-bold shrink-0">
-                          {i + 1}
-                        </span>
+                      <p key={i} className="text-sm text-muted-foreground flex gap-2">
+                        <span className="text-primary font-bold shrink-0">{i + 1}</span>
                         {g}
                       </p>
                     ))}
@@ -601,59 +618,44 @@ export default function HackathonDetailPage({
                   {s.submit.submissionItems && (
                     <div className="mt-5 pt-4 border-t border-zinc-100 dark:border-zinc-800 space-y-1.5">
                       {s.submit.submissionItems.map((item) => (
-                        <p
-                          key={item.key}
-                          className="text-sm text-muted-foreground flex items-center gap-2"
-                        >
+                        <p key={item.key} className="text-sm text-muted-foreground flex items-center gap-2">
                           <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
-                          {item.title}
+                          {item.title} <span className="text-xs text-zinc-400">({item.format})</span>
                         </p>
                       ))}
                     </div>
                   )}
                 </div>
-                <div className={cardCls}>
-                  <h3 className="font-bold mb-4">제출하기</h3>
-                  <div className="space-y-3">
-                    {s.submit.allowedArtifactTypes.length > 1 && (
-                      <select
-                        value={submitType}
-                        onChange={(e) => setSubmitType(e.target.value)}
+                {!isSubmissionClosed && (
+                  <div className={cardCls}>
+                    <h3 className="font-bold mb-4">제출하기</h3>
+                    <div className="space-y-3">
+                      {s.submit.allowedArtifactTypes.length > 1 && (
+                        <select value={submitType} onChange={(e) => setSubmitType(e.target.value)} className={inputCls}>
+                          {s.submit.allowedArtifactTypes.map((t) => (
+                            <option key={t} value={t}>{t.toUpperCase()}</option>
+                          ))}
+                        </select>
+                      )}
+                      <input
+                        type="text"
+                        value={submitContent}
+                        onChange={(e) => setSubmitContent(e.target.value)}
+                        placeholder={submitType === 'url' ? 'https://...' : '제출 내용'}
                         className={inputCls}
-                      >
-                        {s.submit.allowedArtifactTypes.map((t) => (
-                          <option key={t} value={t}>
-                            {t.toUpperCase()}
-                          </option>
-                        ))}
-                      </select>
-                    )}
-                    <input
-                      type="text"
-                      value={submitContent}
-                      onChange={(e) => setSubmitContent(e.target.value)}
-                      placeholder={
-                        submitType === 'url' ? 'https://...' : '제출 내용'
-                      }
-                      className={inputCls}
-                    />
-                    <textarea
-                      value={submitMemo}
-                      onChange={(e) => setSubmitMemo(e.target.value)}
-                      rows={2}
-                      placeholder="메모 (선택)"
-                      className={inputCls + ' resize-none'}
-                    />
-                    <button
-                      onClick={handleSubmit}
-                      className={btnPrimary + ' w-full'}
-                    >
-                      제출
-                    </button>
+                      />
+                      <textarea
+                        value={submitMemo}
+                        onChange={(e) => setSubmitMemo(e.target.value)}
+                        rows={2}
+                        placeholder="메모 (선택)"
+                        className={inputCls + ' resize-none'}
+                      />
+                      <button onClick={handleSubmit} className={btnPrimary + ' w-full'}>제출</button>
+                    </div>
                   </div>
-                </div>
-                {submissions.filter((sub) => sub.hackathonSlug === slug)
-                  .length > 0 && (
+                )}
+                {submissions.filter((sub) => sub.hackathonSlug === slug).length > 0 && (
                   <div className={cardCls}>
                     <h3 className="font-bold mb-3">제출 내역</h3>
                     {submissions
@@ -665,12 +667,14 @@ export default function HackathonDetailPage({
                           animate={{ opacity: 1 }}
                           className="flex items-center justify-between text-sm p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 mb-2 last:mb-0"
                         >
-                          <span className="font-medium truncate mr-3">
-                            {sub.content}
-                          </span>
-                          <span className="text-xs text-muted-foreground shrink-0">
-                            {formatDate(sub.submittedAt)}
-                          </span>
+                          <div className="min-w-0">
+                            <span className="font-medium truncate block">{sub.content}</span>
+                            {sub.memo && <span className="text-xs text-muted-foreground">{sub.memo}</span>}
+                          </div>
+                          <div className="text-right shrink-0 ml-3">
+                            <Badge variant="outline" className="text-[10px]">{sub.type}</Badge>
+                            <p className="text-xs text-muted-foreground mt-1">{formatDate(sub.submittedAt)}</p>
+                          </div>
                         </motion.div>
                       ))}
                   </div>
@@ -679,13 +683,11 @@ export default function HackathonDetailPage({
             )}
 
             {/* 리더보드 */}
-            {activeTab === 6 && (
+            {activeTab === 7 && (
               <div className={cardCls + ' !p-0 overflow-hidden'}>
                 <div className="px-6 py-5 border-b border-zinc-100 dark:border-zinc-800">
                   <h3 className="font-bold">리더보드</h3>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {s.leaderboard.note}
-                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">{s.leaderboard.note}</p>
                 </div>
                 {!leaderboard || leaderboard.entries.length === 0 ? (
                   <Empty message="리더보드 데이터가 없습니다." />
@@ -694,56 +696,42 @@ export default function HackathonDetailPage({
                     <table className="w-full text-sm">
                       <thead className="bg-zinc-50 dark:bg-zinc-800/30">
                         <tr>
-                          <th className="px-5 py-3 text-left font-medium text-muted-foreground text-xs w-16">
-                            순위
-                          </th>
-                          <th className="px-5 py-3 text-left font-medium text-muted-foreground text-xs">
-                            팀
-                          </th>
-                          <th className="px-5 py-3 text-right font-medium text-muted-foreground text-xs">
-                            점수
-                          </th>
+                          <th className="px-5 py-3 text-left font-medium text-muted-foreground text-xs w-16">순위</th>
+                          <th className="px-5 py-3 text-left font-medium text-muted-foreground text-xs">팀</th>
+                          <th className="px-5 py-3 text-right font-medium text-muted-foreground text-xs">점수</th>
                           {leaderboard.entries[0]?.scoreBreakdown && (
                             <>
-                              <th className="px-5 py-3 text-right font-medium text-muted-foreground text-xs">
-                                참가자
-                              </th>
-                              <th className="px-5 py-3 text-right font-medium text-muted-foreground text-xs">
-                                심사위원
-                              </th>
+                              <th className="px-5 py-3 text-right font-medium text-muted-foreground text-xs">참가자</th>
+                              <th className="px-5 py-3 text-right font-medium text-muted-foreground text-xs">심사위원</th>
                             </>
                           )}
+                          <th className="px-5 py-3 text-right font-medium text-muted-foreground text-xs">제출일</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
                         {leaderboard.entries.map((e) => (
-                          <tr
-                            key={e.rank}
-                            className="hover:bg-zinc-50 dark:hover:bg-zinc-800/20 transition-colors"
-                          >
+                          <tr key={e.rank} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/20 transition-colors">
                             <td className="px-5 py-4">
-                              <span
-                                className={`font-bold ${e.rank <= 3 ? 'text-primary' : ''}`}
-                              >
-                                #{e.rank}
+                              <span className={`font-bold ${e.rank <= 3 ? 'text-primary' : ''}`}>
+                                {e.rank <= 3 ? ['🥇', '🥈', '🥉'][e.rank - 1] : `#${e.rank}`}
                               </span>
                             </td>
-                            <td className="px-5 py-4 font-medium">
-                              {e.teamName}
+                            <td className="px-5 py-4">
+                              <p className="font-medium">{e.teamName}</p>
+                              {e.artifacts?.webUrl && (
+                                <a href={e.artifacts.webUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">
+                                  {e.artifacts.webUrl}
+                                </a>
+                              )}
                             </td>
-                            <td className="px-5 py-4 text-right font-mono font-bold">
-                              {e.score}
-                            </td>
+                            <td className="px-5 py-4 text-right font-mono font-bold">{e.score}</td>
                             {e.scoreBreakdown && (
                               <>
-                                <td className="px-5 py-4 text-right text-muted-foreground">
-                                  {e.scoreBreakdown.participant}
-                                </td>
-                                <td className="px-5 py-4 text-right text-muted-foreground">
-                                  {e.scoreBreakdown.judge}
-                                </td>
+                                <td className="px-5 py-4 text-right text-muted-foreground">{e.scoreBreakdown.participant}</td>
+                                <td className="px-5 py-4 text-right text-muted-foreground">{e.scoreBreakdown.judge}</td>
                               </>
                             )}
+                            <td className="px-5 py-4 text-right text-xs text-muted-foreground">{formatDate(e.submittedAt)}</td>
                           </tr>
                         ))}
                       </tbody>
