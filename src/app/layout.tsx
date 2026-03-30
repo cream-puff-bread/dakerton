@@ -3,7 +3,7 @@ import "./globals.css";
 import ClientShell from "@/components/ClientShell";
 
 export const metadata: Metadata = {
-  title: "Dakerton — 해커톤 플랫폼",
+  title: "DAKERTON — 해커톤 플랫폼",
   description: "해커톤 탐색, 팀 빌딩, 제출, 리더보드를 한 곳에서",
 };
 

@@ -1,4 +1,4 @@
-import { Hackathon, HackathonDetail, Team, Leaderboard, RankingEntry } from "@/lib/types";
+import { Hackathon, HackathonDetail, Team, Leaderboard, RankingEntry, User } from "@/lib/types";
 
 export const seedHackathons: Hackathon[] = [
   {
@@ -337,4 +337,25 @@ export const seedRankings: RankingEntry[] = [
   { rank: 6, nickname: "data_star", points: 170, participationCount: 3 },
   { rank: 7, nickname: "dev_explorer", points: 150, participationCount: 2 },
   { rank: 8, nickname: "ai_dreamer", points: 130, participationCount: 3 },
+];
+
+export const seedUsers: User[] = [
+  {
+    id: "user-demo",
+    email: "demo@dakerton.com",
+    password: "demo1234",
+    nickname: "alpha_dev",
+    preferredPositions: ["Frontend", "Backend"],
+    bio: "풀스택 개발자입니다. 해커톤을 즐기고 있습니다!",
+    createdAt: "2026-01-15T09:00:00+09:00",
+  },
+  {
+    id: "user-guest",
+    email: "guest@dakerton.com",
+    password: "guest1234",
+    nickname: "code_ninja",
+    preferredPositions: ["ML Engineer", "Backend"],
+    bio: "ML 엔지니어를 꿈꾸는 개발자입니다.",
+    createdAt: "2026-02-01T10:00:00+09:00",
+  },
 ];

@@ -6,6 +6,7 @@ import {
   seedTeams,
   seedLeaderboards,
   seedRankings,
+  seedUsers,
 } from "@/data/seed";
 
 function getStorage<T>(key: string, fallback: T): T {
@@ -35,6 +36,7 @@ export function initSeedData() {
   if (!localStorage.getItem("rankings")) setStorage("rankings", seedRankings);
   if (!localStorage.getItem("submissions")) setStorage("submissions", []);
   if (!localStorage.getItem("invitations")) setStorage("invitations", []);
+  if (!localStorage.getItem("users")) setStorage("users", seedUsers);
 }
 
 export function useLocalStorage<T>(key: string, fallback: T) {
