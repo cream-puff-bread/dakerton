@@ -43,7 +43,7 @@ export default function LoginPage() {
         <div className="text-center mb-8">
           <h1 className="text-3xl font-extrabold mb-2">로그인</h1>
           <p className="text-muted-foreground text-sm">
-            Dakerton 계정으로 로그인하세요
+            DAKERTON 계정으로 로그인하세요
           </p>
         </div>
 

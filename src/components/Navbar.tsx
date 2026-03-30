@@ -36,7 +36,7 @@ export default function Navbar() {
             isHero && !scrolled ? 'text-white' : 'text-primary'
           }`}
         >
-          Dakerton
+          DAKERTON
         </Link>
 
         {/* Desktop */}

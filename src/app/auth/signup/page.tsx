@@ -68,7 +68,7 @@ export default function SignupPage() {
         <div className="text-center mb-8">
           <h1 className="text-3xl font-extrabold mb-2">회원가입</h1>
           <p className="text-muted-foreground text-sm">
-            Dakerton에 가입하고 해커톤에 참가하세요
+            DAKERTON에 가입하고 해커톤에 참가하세요
           </p>
         </div>
 

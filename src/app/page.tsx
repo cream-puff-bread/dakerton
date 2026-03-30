@@ -355,7 +355,7 @@ export default function Home() {
               지금 시작하세요
             </h2>
             <p className="text-muted-foreground mb-10 max-w-md mx-auto">
-              Dakerton에서 당신의 아이디어를 현실로 만들어보세요.
+              DAKERTON에서 당신의 아이디어를 현실로 만들어보세요.
             </p>
 
             <HackathonSearchBar />
@@ -366,9 +366,9 @@ export default function Home() {
       {/* Footer */}
       <footer className="border-t border-border py-10 px-4">
         <div className="container mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          <span className="text-sm font-semibold text-primary">Dakerton</span>
+          <span className="text-sm font-semibold text-primary">DAKERTON</span>
           <span className="text-xs text-muted-foreground">
-            © 2026 Dakerton. All rights reserved.
+            © 2026 DAKERTON. All rights reserved.
           </span>
         </div>
       </footer>
