@@ -1,124 +1,374 @@
-"use client";
-import Link from "next/link";
-import { useLocalStorage } from "@/hooks/useLocalStorage";
-import { Hackathon } from "@/lib/types";
-import { Countdown, StatusBadge } from "@/components/UI";
+'use client';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
+import {
+  ArrowRight,
+  Trophy,
+  Users,
+  Zap,
+  ChevronLeft,
+  ChevronRight,
+  Search,
+} from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import CountUp from '@/components/CountUp';
 
-const cards = [
+const ctaCards = [
   {
-    href: "/hackathons",
-    title: "해커톤",
-    desc: "진행 중인 대회를 탐색하세요",
-    icon: <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><path d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/></svg>,
+    icon: Zap,
+    title: '해커톤 보러가기',
+    desc: '다양한 해커톤을 탐색하고 참가하세요',
+    path: '/hackathons',
   },
   {
-    href: "/camp",
-    title: "팀 찾기",
-    desc: "함께할 팀원을 모집하세요",
-    icon: <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><path d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/></svg>,
+    icon: Users,
+    title: '팀 찾기',
+    desc: '나에게 맞는 팀원을 찾아보세요',
+    path: '/camp',
   },
   {
-    href: "/rankings",
-    title: "랭킹",
-    desc: "글로벌 순위를 확인하세요",
-    icon: <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><path d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 01-.982-3.172M9.497 14.25a7.454 7.454 0 00.981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 007.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M18.75 4.236c.982.143 1.954.317 2.916.52A6.003 6.003 0 0016.27 9.728M18.75 4.236V4.5c0 2.108-.966 3.99-2.48 5.228m0 0a6.023 6.023 0 01-3.52 1.122 6.023 6.023 0 01-3.52-1.122"/></svg>,
+    icon: Trophy,
+    title: '랭킹 보기',
+    desc: '글로벌 랭킹에서 실력을 확인하세요',
+    path: '/rankings',
   },
 ];
 
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("ko-KR", { month: "short", day: "numeric" });
-}
+const carouselSlides = [
+  {
+    img: '/carousel-1.jpg',
+    title: '팀 협업',
+    desc: '함께 아이디어를 실현하세요',
+  },
+  {
+    img: '/carousel-2.jpg',
+    title: '수상의 순간',
+    desc: '최고의 팀에게 주어지는 영광',
+  },
+  {
+    img: '/carousel-3.jpg',
+    title: '몰입 개발',
+    desc: '한계를 넘는 코딩의 즐거움',
+  },
+];
 
-export default function Home() {
-  const [hackathons] = useLocalStorage<Hackathon[]>("hackathons", []);
-  const ongoing = hackathons.filter((h) => h.status === "ongoing");
-  const nearestDeadline = ongoing.length > 0
-    ? ongoing.reduce((a, b) =>
-        new Date(a.period.submissionDeadlineAt).getTime() < new Date(b.period.submissionDeadlineAt).getTime() ? a : b
-      )
-    : null;
+const HackathonSearchBar = () => {
+  const router = useRouter();
+  const [query, setQuery] = useState('');
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (query.trim()) {
+      router.push(`/hackathons?q=${encodeURIComponent(query.trim())}`);
+    }
+  };
 
   return (
-    <div className="animate-fade-in">
+    <form onSubmit={handleSearch} className="relative max-w-lg mx-auto w-full">
+      <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+      <input
+        type="text"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="해커톤 대회를 검색하세요..."
+        className="w-full h-12 pl-12 pr-24 rounded-full border border-border bg-background text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+      />
+      <button
+        type="submit"
+        className="absolute right-2 top-1/2 -translate-y-1/2 px-5 py-2 rounded-full bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
+      >
+        검색
+      </button>
+    </form>
+  );
+};
+
+export default function Home() {
+  const [current, setCurrent] = useState(0);
+
+  const next = useCallback(
+    () => setCurrent((p) => (p + 1) % carouselSlides.length),
+    [],
+  );
+  const prev = useCallback(
+    () =>
+      setCurrent(
+        (p) => (p - 1 + carouselSlides.length) % carouselSlides.length,
+      ),
+    [],
+  );
+
+  useEffect(() => {
+    const timer = setInterval(next, 4000);
+    return () => clearInterval(timer);
+  }, [next]);
+
+  return (
+    <div className="min-h-screen">
       {/* Hero */}
-      <section className="pt-8 pb-12 sm:pt-16 sm:pb-20">
-        <h1 className="text-[32px] sm:text-[44px] font-bold leading-tight tracking-tight mb-3">
-          해커톤의 모든 것,<br />
-          <span className="text-[#5383EC]">Dakerton</span>
-        </h1>
-        <p className="text-zinc-400 dark:text-zinc-500 text-[15px] sm:text-base max-w-md leading-relaxed">
-          대회 탐색부터 팀 빌딩, 제출, 순위 확인까지<br className="hidden sm:block" />
-          해커톤 여정을 하나의 플랫폼에서 완결하세요.
-        </p>
-      </section>
+      <section className="relative min-h-screen flex flex-col items-center justify-center text-center px-4 overflow-hidden">
+        <video
+          src="/dakerton.mp4"
+          autoPlay
+          muted
+          loop
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 gradient-hero-overlay" />
 
-      {/* Countdown banner */}
-      {nearestDeadline && (
-        <section className="mb-10 p-5 rounded-2xl bg-zinc-50 dark:bg-zinc-900/60 border border-zinc-100 dark:border-zinc-800">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <p className="text-xs font-medium text-[#5383EC] mb-1">마감 임박</p>
-              <p className="text-sm font-semibold">{nearestDeadline.title}</p>
-            </div>
-            <Countdown targetDate={nearestDeadline.period.submissionDeadlineAt} />
-          </div>
-        </section>
-      )}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: 'easeOut' }}
+          className="relative z-10 max-w-4xl mx-auto"
+        >
+          <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold leading-tight mb-16 text-white tracking-tight">
+            아이디어가 현실이 되는
+            <br />
+            나만의 해커톤
+          </h1>
 
-      {/* CTA Cards */}
-      <section className="grid sm:grid-cols-3 gap-3 mb-14">
-        {cards.map((c) => (
-          <Link
-            key={c.href}
-            href={c.href}
-            className="group flex items-center gap-4 rounded-2xl bg-zinc-50 dark:bg-zinc-900/60 border border-zinc-100 dark:border-zinc-800 p-5 hover:border-[#5383EC]/40 dark:hover:border-[#5383EC]/30 hover:bg-[#F5F7FE] dark:hover:bg-[#5383EC]/5 transition-all"
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.3 }}
           >
-            <div className="w-11 h-11 rounded-xl bg-white dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 flex items-center justify-center text-zinc-400 dark:text-zinc-500 group-hover:text-[#5383EC] transition-colors shrink-0">
-              {c.icon}
-            </div>
-            <div>
-              <p className="text-[15px] font-semibold mb-0.5">{c.title}</p>
-              <p className="text-xs text-zinc-400 dark:text-zinc-500">{c.desc}</p>
-            </div>
-          </Link>
-        ))}
+            <Link
+              href="/hackathons"
+              className="inline-block px-10 py-4 bg-white text-black text-sm font-semibold tracking-wide hover:bg-white/90 transition-colors"
+            >
+              시작하기
+            </Link>
+          </motion.div>
+
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6 }}
+            className="mt-6 text-white/60 text-sm"
+          >
+            팀을 찾고, 해커톤에 참가하고, 성과를 기록하세요.
+          </motion.p>
+        </motion.div>
       </section>
 
-      {/* Hackathon list */}
-      <section>
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="text-lg font-bold">전체 해커톤</h2>
-          <Link href="/hackathons" className="text-sm text-[#5383EC] font-medium hover:underline">
-            전체 보기
-          </Link>
-        </div>
-        <div className="space-y-3">
-          {hackathons.map((h) => (
-            <Link
-              key={h.slug}
-              href={`/hackathons/${h.slug}`}
-              className="group flex items-center justify-between gap-4 p-5 rounded-2xl border border-zinc-100 dark:border-zinc-800 hover:border-zinc-200 dark:hover:border-zinc-700 bg-white dark:bg-zinc-900/40 transition-all"
-            >
-              <div className="min-w-0">
-                <div className="flex items-center gap-2.5 mb-2">
-                  <StatusBadge status={h.status} />
-                  <h3 className="text-[15px] font-semibold truncate group-hover:text-[#5383EC] transition-colors">{h.title}</h3>
-                </div>
-                <div className="flex items-center gap-3 text-xs text-zinc-400">
-                  <span>{formatDate(h.period.submissionDeadlineAt)} ~ {formatDate(h.period.endAt)}</span>
-                  <span>{h.participantCount ?? 0}명 참가</span>
-                  <div className="flex gap-1">
-                    {h.tags.slice(0, 3).map((t) => (
-                      <span key={t} className="px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500">{t}</span>
-                    ))}
+      {/* Carousel */}
+      <section
+        className="relative -mt-60 z-10 pb-12"
+        style={{ perspective: '1200px' }}
+      >
+        <div className="container mx-auto max-w-7xl px-4">
+          <div className="relative flex items-center justify-center h-[420px] md:h-[520px]">
+            {carouselSlides.map((slide, i) => {
+              const offset = i - current;
+              const isCenter = offset === 0;
+              const isLeft =
+                offset === -1 ||
+                (current === 0 && i === carouselSlides.length - 1);
+              const isRight =
+                offset === 1 ||
+                (current === carouselSlides.length - 1 && i === 0);
+
+              if (!isCenter && !isLeft && !isRight) return null;
+
+              let x = '0%';
+              let rotateY = 0;
+              let scale = 1;
+              let zIndex = 10;
+              let opacity = 1;
+
+              if (isLeft && !isCenter) {
+                x = '-65%';
+                rotateY = 35;
+                scale = 0.8;
+                zIndex = 5;
+                opacity = 0.7;
+              } else if (isRight && !isCenter) {
+                x = '65%';
+                rotateY = -35;
+                scale = 0.8;
+                zIndex = 5;
+                opacity = 0.7;
+              }
+
+              return (
+                <motion.div
+                  key={i}
+                  animate={{
+                    x,
+                    rotateY,
+                    scale,
+                    opacity,
+                  }}
+                  transition={{ duration: 0.5, ease: 'easeInOut' }}
+                  className="absolute w-[65%] md:w-[55%] cursor-pointer"
+                  style={{ zIndex, transformStyle: 'preserve-3d' }}
+                  onClick={() => {
+                    if (isLeft) prev();
+                    if (isRight) next();
+                  }}
+                >
+                  <div className="relative aspect-[16/10] rounded-2xl overflow-hidden shadow-2xl">
+                    <img
+                      src={slide.img}
+                      alt={slide.title}
+                      loading="lazy"
+                      width={800}
+                      height={512}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                    {isCenter && (
+                      <div className="absolute bottom-5 left-5 text-white">
+                        <h3 className="text-lg font-bold">{slide.title}</h3>
+                        <p className="text-sm text-white/70">{slide.desc}</p>
+                      </div>
+                    )}
                   </div>
+                </motion.div>
+              );
+            })}
+
+            {/* Nav buttons */}
+            <button
+              onClick={prev}
+              className="absolute left-2 md:left-8 top-1/2 -translate-y-1/2 z-20 w-10 h-10 flex items-center justify-center rounded-full bg-background/80 hover:bg-background text-foreground shadow-md transition-colors"
+            >
+              <ChevronLeft size={20} />
+            </button>
+            <button
+              onClick={next}
+              className="absolute right-2 md:right-8 top-1/2 -translate-y-1/2 z-20 w-10 h-10 flex items-center justify-center rounded-full bg-background/80 hover:bg-background text-foreground shadow-md transition-colors"
+            >
+              <ChevronRight size={20} />
+            </button>
+          </div>
+
+          {/* Dots */}
+          <div className="flex justify-center gap-2 mt-4">
+            {carouselSlides.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setCurrent(i)}
+                className={`w-2 h-2 rounded-full transition-colors ${
+                  i === current ? 'bg-primary' : 'bg-muted-foreground/30'
+                }`}
+              />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Stats */}
+      <section className="py-24 px-4 bg-background">
+        <div className="container mx-auto max-w-5xl">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="grid grid-cols-2 md:grid-cols-4 gap-12"
+          >
+            {[
+              { end: 150, suffix: '+', label: '해커톤' },
+              { end: 3200, suffix: '+', label: '참가자' },
+              { end: 800, suffix: '+', label: '팀' },
+              { end: 5, prefix: '₩', suffix: '억+', label: '총 상금' },
+            ].map((stat) => (
+              <div key={stat.label} className="text-center">
+                <CountUp
+                  end={stat.end}
+                  prefix={stat.prefix}
+                  suffix={stat.suffix}
+                />
+                <div className="text-sm text-muted-foreground mt-2 tracking-wide">
+                  {stat.label}
                 </div>
               </div>
-              <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="text-zinc-300 dark:text-zinc-600 shrink-0 group-hover:text-[#5383EC] transition-colors"><path d="M9 5l7 7-7 7"/></svg>
-            </Link>
-          ))}
+            ))}
+          </motion.div>
         </div>
       </section>
+
+      {/* Feature section */}
+      <section className="py-24 px-4 border-t border-border">
+        <div className="container mx-auto max-w-5xl">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-3xl md:text-5xl font-bold mb-4">
+              해커톤의 모든 것,
+              <br />한 곳에서.
+            </h2>
+            <p className="text-muted-foreground max-w-md mx-auto">
+              하나의 플랫폼에서 해커톤 탐색, 팀 빌딩, 성과 관리까지.
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-3 gap-px bg-border">
+            {ctaCards.map((card, i) => (
+              <motion.div
+                key={card.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+              >
+                <Link
+                  href={card.path}
+                  className="block p-10 bg-background hover:bg-secondary transition-colors group"
+                >
+                  <card.icon
+                    size={24}
+                    className="text-muted-foreground mb-6 group-hover:text-foreground transition-colors"
+                  />
+                  <h3 className="text-lg font-semibold mb-3">{card.title}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed mb-6">
+                    {card.desc}
+                  </p>
+                  <span className="inline-flex items-center gap-2 text-sm font-medium text-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+                    자세히 보기 <ArrowRight size={14} />
+                  </span>
+                </Link>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA banner */}
+      <section className="py-32 px-4 bg-background text-foreground border-t border-border">
+        <div className="container mx-auto max-w-3xl text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-3xl md:text-5xl font-bold mb-6">
+              지금 시작하세요
+            </h2>
+            <p className="text-muted-foreground mb-10 max-w-md mx-auto">
+              Dakerton에서 당신의 아이디어를 현실로 만들어보세요.
+            </p>
+
+            <HackathonSearchBar />
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-border py-10 px-4">
+        <div className="container mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+          <span className="text-sm font-semibold text-primary">Dakerton</span>
+          <span className="text-xs text-muted-foreground">
+            © 2026 Dakerton. All rights reserved.
+          </span>
+        </div>
+      </footer>
     </div>
   );
 }
