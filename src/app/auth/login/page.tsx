@@ -97,17 +97,7 @@ export default function LoginPage() {
           </p>
         </form>
 
-        <div className="mt-6 rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/30 p-4">
-          <p className="text-xs text-muted-foreground mb-2 font-medium">
-            데모 계정
-          </p>
-          <p className="text-xs text-muted-foreground">
-            이메일: demo@dakerton.com
-          </p>
-          <p className="text-xs text-muted-foreground">
-            비밀번호: demo1234
-          </p>
-        </div>
+
       </motion.div>
     </div>
   );

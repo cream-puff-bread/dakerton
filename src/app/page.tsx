@@ -103,7 +103,7 @@ export default function Home() {
   );
 
   useEffect(() => {
-    const timer = setInterval(next, 4000);
+    const timer = setInterval(next, 5000);
     return () => clearInterval(timer);
   }, [next]);
 
@@ -255,8 +255,8 @@ export default function Home() {
               <button
                 key={i}
                 onClick={() => setCurrent(i)}
-                className={`w-2 h-2 rounded-full transition-colors ${
-                  i === current ? 'bg-primary' : 'bg-muted-foreground/30'
+                className={`h-1 rounded-full transition-all duration-300 ${
+                  i === current ? 'w-8 bg-primary' : 'w-4 bg-muted-foreground/30'
                 }`}
               />
             ))}

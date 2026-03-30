@@ -79,7 +79,7 @@ export default function Navbar() {
               className={`px-5 py-2 text-sm font-medium transition-colors border ${
                 isHero && !scrolled
                   ? 'text-white border-white hover:bg-white hover:text-black'
-                  : 'text-foreground border-foreground hover:bg-foreground hover:text-background'
+                  : 'text-primary border-primary hover:bg-primary hover:text-primary-foreground'
               }`}
             >
               로그인
@@ -119,7 +119,7 @@ export default function Navbar() {
               <Link
                 href={user ? '/profile' : '/auth/login'}
                 onClick={() => setMobileOpen(false)}
-                className="mt-4 px-8 py-3 text-sm font-medium border border-foreground text-foreground hover:bg-foreground hover:text-background transition-colors"
+                className="mt-4 px-8 py-3 text-sm font-medium border border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-colors"
               >
                 {user ? user.nickname : '로그인'}
               </Link>
