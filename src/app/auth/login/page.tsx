@@ -82,7 +82,7 @@ export default function LoginPage() {
           )}
           <button
             type="submit"
-            className="w-full text-[13px] px-4 py-3 rounded-xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-semibold hover:opacity-90 transition-opacity"
+            className="w-full text-[13px] px-4 py-3 rounded-xl bg-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity"
           >
             로그인
           </button>

@@ -92,7 +92,7 @@ export default function RankingsPage() {
                 onClick={() => setPeriod(f.value)}
                 className={`text-[13px] px-3.5 py-2 rounded-xl font-semibold transition-colors ${
                   period === f.value
-                    ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900'
+                    ? 'bg-primary text-primary-foreground'
                     : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400'
                 }`}
               >

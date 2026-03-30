@@ -166,7 +166,7 @@ function CampContent() {
               resetForm();
               setShowForm(!showForm);
             }}
-            className="flex items-center gap-2 text-[13px] px-5 py-2.5 rounded-xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-semibold hover:opacity-90 transition-opacity self-start sm:self-auto"
+            className="flex items-center gap-2 text-[13px] px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity self-start sm:self-auto"
           >
             {showForm ? (
               <>
@@ -324,7 +324,7 @@ function CampContent() {
                 </div>
                 <button
                   onClick={handleSubmit}
-                  className="w-full text-[13px] px-4 py-2.5 rounded-xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-semibold hover:opacity-90 transition-opacity"
+                  className="w-full text-[13px] px-4 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity"
                 >
                   {editCode ? '수정 완료' : '등록'}
                 </button>
@@ -385,7 +385,7 @@ function CampContent() {
         >
           <button
             onClick={() => setPosFilter(null)}
-            className={`text-[13px] px-3.5 py-2 rounded-xl font-semibold transition-colors ${!posFilter ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400'}`}
+            className={`text-[13px] px-3.5 py-2 rounded-xl font-semibold transition-colors ${!posFilter ? 'bg-primary text-primary-foreground' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400'}`}
           >
             전체
           </button>
@@ -393,7 +393,7 @@ function CampContent() {
             <button
               key={p}
               onClick={() => setPosFilter(posFilter === p ? null : p)}
-              className={`text-[13px] px-3.5 py-2 rounded-xl font-semibold transition-colors ${posFilter === p ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400'}`}
+              className={`text-[13px] px-3.5 py-2 rounded-xl font-semibold transition-colors ${posFilter === p ? 'bg-primary text-primary-foreground' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400'}`}
             >
               {p}
             </button>

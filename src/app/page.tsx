@@ -187,13 +187,13 @@ export default function Home() {
                 rotateY = 35;
                 scale = 0.8;
                 zIndex = 5;
-                opacity = 0.7;
+                opacity = 1;
               } else if (isRight && !isCenter) {
                 x = '65%';
                 rotateY = -35;
                 scale = 0.8;
                 zIndex = 5;
-                opacity = 0.7;
+                opacity = 1;
               }
 
               return (
