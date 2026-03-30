@@ -2,8 +2,9 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '@/hooks/useAuth';
 
 const navItems = [
   { label: '해커톤', path: '/hackathons' },
@@ -15,6 +16,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const { user } = useAuth();
   const isHero = pathname === '/';
 
   useEffect(() => {
@@ -59,16 +61,30 @@ export default function Navbar() {
         </div>
 
         <div className="hidden md:flex items-center gap-4">
-          <Link
-            href="/hackathons"
-            className={`px-5 py-2 text-sm font-medium transition-colors border ${
-              isHero && !scrolled
-                ? 'text-white border-white hover:bg-white hover:text-black'
-                : 'text-foreground border-foreground hover:bg-foreground hover:text-background'
-            }`}
-          >
-            로그인
-          </Link>
+          {user ? (
+            <Link
+              href="/profile"
+              className={`flex items-center gap-2 px-5 py-2 text-sm font-medium transition-colors border rounded-xl ${
+                isHero && !scrolled
+                  ? 'text-white border-white/50 hover:bg-white/10'
+                  : 'text-foreground border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800'
+              }`}
+            >
+              <User size={16} />
+              {user.nickname}
+            </Link>
+          ) : (
+            <Link
+              href="/auth/login"
+              className={`px-5 py-2 text-sm font-medium transition-colors border ${
+                isHero && !scrolled
+                  ? 'text-white border-white hover:bg-white hover:text-black'
+                  : 'text-foreground border-foreground hover:bg-foreground hover:text-background'
+              }`}
+            >
+              로그인
+            </Link>
+          )}
         </div>
 
         {/* Mobile toggle */}
@@ -101,11 +117,11 @@ export default function Navbar() {
                 </Link>
               ))}
               <Link
-                href="/hackathons"
+                href={user ? '/profile' : '/auth/login'}
                 onClick={() => setMobileOpen(false)}
                 className="mt-4 px-8 py-3 text-sm font-medium border border-foreground text-foreground hover:bg-foreground hover:text-background transition-colors"
               >
-                로그인
+                {user ? user.nickname : '로그인'}
               </Link>
             </div>
           </motion.div>

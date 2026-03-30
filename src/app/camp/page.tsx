@@ -3,10 +3,11 @@ import { useState, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Users, Plus, X, Edit, ExternalLink } from 'lucide-react';
+import { Search, Users, Plus, X } from 'lucide-react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
+import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/components/Toast';
-import { Team, Hackathon } from '@/lib/types';
+import { Team, Hackathon, HackathonDetail } from '@/lib/types';
 import { Loading, Empty } from '@/components/UI';
 import { Badge } from '@/components/ui/badge';
 
@@ -24,6 +25,8 @@ function CampContent() {
   const hackathonFilter = searchParams.get('hackathon');
   const [teams, setTeams, loaded] = useLocalStorage<Team[]>('teams', []);
   const [hackathons] = useLocalStorage<Hackathon[]>('hackathons', []);
+  const [details] = useLocalStorage<HackathonDetail[]>('hackathon_details', []);
+  const { user } = useAuth();
   const { toast } = useToast();
   const [posFilter, setPosFilter] = useState<string | null>(null);
   const [hackFilter, setHackFilter] = useState<string | null>(hackathonFilter);
@@ -52,6 +55,18 @@ function CampContent() {
       }),
     [teams, hackFilter, posFilter, search],
   );
+
+  const recommended = useMemo(() => {
+    if (!user?.preferredPositions?.length) return [];
+    return teams
+      .filter((t) => t.isOpen && t.lookingFor.some((lf) => user.preferredPositions.includes(lf)))
+      .slice(0, 3);
+  }, [teams, user]);
+
+  const getMaxTeamSize = (hackSlug: string) => {
+    const d = details.find((dt) => dt.slug === hackSlug);
+    return d?.sections.overview.teamPolicy.maxTeamSize || 5;
+  };
 
   const resetForm = () => {
     setFormName('');
@@ -318,6 +333,49 @@ function CampContent() {
           )}
         </AnimatePresence>
 
+        {/* Smart team matching */}
+        {recommended.length > 0 && !hackFilter && !posFilter && !search && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.12 }}
+            className="mb-8 rounded-2xl border-2 border-primary/20 bg-primary/5 p-5"
+          >
+            <h3 className="font-bold text-sm text-primary mb-3">✨ 나에게 맞는 팀 추천</h3>
+            <div className="space-y-2">
+              {recommended.map((t) => (
+                <div key={t.teamCode} className="flex items-center justify-between gap-3 py-2 px-3 rounded-xl bg-white dark:bg-zinc-900/60">
+                  <div className="min-w-0">
+                    <p className="font-semibold text-sm">{t.name}</p>
+                    <div className="flex gap-1 mt-1">
+                      {t.lookingFor
+                        .filter((lf) => user!.preferredPositions.includes(lf))
+                        .map((lf) => (
+                          <Badge key={lf} variant="default" className="text-[10px]">{lf}</Badge>
+                        ))}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setTeams((prev) =>
+                        prev.map((team) =>
+                          team.teamCode === t.teamCode
+                            ? { ...team, memberCount: team.memberCount + 1 }
+                            : team,
+                        ),
+                      );
+                      toast(`${t.name}에 지원했습니다!`);
+                    }}
+                    className="text-xs px-3 py-2 rounded-xl bg-primary text-white font-semibold hover:opacity-90 transition-opacity shrink-0"
+                  >
+                    지원하기
+                  </button>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
         {/* Position filters */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
@@ -389,7 +447,7 @@ function CampContent() {
                   </div>
                   <div className="flex flex-col items-end justify-between shrink-0 self-stretch">
                     <span className="text-sm font-semibold">
-                      {t.memberCount}/5
+                      {t.memberCount}/{getMaxTeamSize(t.hackathonSlug)}
                     </span>
                     <button
                       onClick={() => {

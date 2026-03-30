@@ -1,6 +1,5 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { usePathname } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import { ToastProvider } from '@/components/Toast';
 import { initSeedData } from '@/hooks/useLocalStorage';
@@ -64,8 +63,6 @@ export default function ClientShell({
   children: React.ReactNode;
 }) {
   const [ready, setReady] = useState(false);
-  const pathname = usePathname();
-  const isHome = pathname === '/';
 
   useEffect(() => {
     initSeedData();
@@ -77,11 +74,7 @@ export default function ClientShell({
   return (
     <ToastProvider>
       <Navbar />
-      {isHome ? (
-        <main>{children}</main>
-      ) : (
-        <main className="max-w-5xl mx-auto px-5 py-8">{children}</main>
-      )}
+      <main>{children}</main>
       <ThemeToggle />
     </ToastProvider>
   );

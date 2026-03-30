@@ -13,6 +13,8 @@ import {
 } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import CountUp from '@/components/CountUp';
+import { useLocalStorage } from '@/hooks/useLocalStorage';
+import { Hackathon } from '@/lib/types';
 
 const ctaCards = [
   {
@@ -86,6 +88,7 @@ const HackathonSearchBar = () => {
 
 export default function Home() {
   const [current, setCurrent] = useState(0);
+  const [hackathons] = useLocalStorage<Hackathon[]>('hackathons', []);
 
   const next = useCallback(
     () => setCurrent((p) => (p + 1) % carouselSlides.length),
