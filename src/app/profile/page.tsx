@@ -194,7 +194,7 @@ export default function ProfilePage() {
               <div className="flex flex-wrap gap-1.5">
                 {user.preferredPositions.length > 0 ? (
                   user.preferredPositions.map((p) => (
-                    <Badge key={p} variant="outline">
+                    <Badge key={p} variant="outline" className="text-[#3b7cde] border-[#3b7cde]">
                       {p}
                     </Badge>
                   ))
