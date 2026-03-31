@@ -27,7 +27,12 @@
 
 @layer base {
   html {
-    scrollbar-gutter: stable;
+    overflow-x: hidden;
+  }
+  @media (min-width: 768px) {
+    html {
+      scrollbar-gutter: stable;
+    }
   }
   body {
     @apply bg-white text-zinc-900 dark:bg-[#0D1117] dark:text-zinc-100 antialiased;

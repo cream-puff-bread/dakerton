@@ -19,20 +19,20 @@ import { Hackathon } from '@/lib/types';
 const ctaCards = [
   {
     icon: Zap,
-    title: '해커톤 보러가기',
-    desc: '다양한 해커톤을 탐색하고 참가하세요',
+    title: '대회 참가하기',
+    desc: '명세서 기반 구현 해커톤에 도전하세요',
     path: '/hackathons',
   },
   {
     icon: Users,
-    title: '팀 찾기',
-    desc: '나에게 맞는 팀원을 찾아보세요',
+    title: '팀원 모집',
+    desc: '인수인계 미션을 함께할 팀원을 찾으세요',
     path: '/camp',
   },
   {
     icon: Trophy,
-    title: '랭킹 보기',
-    desc: '글로벌 랭킹에서 실력을 확인하세요',
+    title: '순위 확인',
+    desc: '제출 결과와 실시간 순위를 확인하세요',
     path: '/rankings',
   },
 ];
@@ -108,7 +108,7 @@ export default function Home() {
   }, [next]);
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen overflow-x-hidden">
       {/* Hero */}
       <section className="relative min-h-screen flex flex-col items-center justify-center text-center px-4 overflow-hidden">
         <video
@@ -128,9 +128,9 @@ export default function Home() {
           className="relative z-10 max-w-4xl mx-auto"
         >
           <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold leading-tight mb-16 text-white tracking-tight">
-            아이디어가 현실이 되는
+            명세서만 보고
             <br />
-            나만의 해커톤
+            구현하라
           </h1>
 
           <motion.div
@@ -152,14 +152,14 @@ export default function Home() {
             transition={{ delay: 0.6 }}
             className="mt-6 text-white/60 text-sm"
           >
-            팀을 찾고, 해커톤에 참가하고, 성과를 기록하세요.
+            긴급 인수인계 해커톤 — 코드 없이 명세서만으로 시작하는 도전
           </motion.p>
         </motion.div>
       </section>
 
       {/* Carousel */}
       <section
-        className="relative -mt-60 z-10 pb-12"
+        className="relative -mt-60 z-10 pb-12 overflow-hidden"
         style={{ perspective: '1200px' }}
       >
         <div className="container mx-auto max-w-7xl px-4">
@@ -304,11 +304,11 @@ export default function Home() {
             className="text-center mb-16"
           >
             <h2 className="text-3xl md:text-5xl font-bold mb-4">
-              해커톤의 모든 것,
-              <br />한 곳에서.
+              대회 참가부터
+              <br />제출까지, 한 곳에서.
             </h2>
             <p className="text-muted-foreground max-w-md mx-auto">
-              하나의 플랫폼에서 해커톤 탐색, 팀 빌딩, 성과 관리까지.
+              해커톤 탐색, 팀 빌딩, 결과물 제출, 리더보드까지 하나의 플랫폼에서.
             </p>
           </motion.div>
 
@@ -352,10 +352,10 @@ export default function Home() {
             viewport={{ once: true }}
           >
             <h2 className="text-3xl md:text-5xl font-bold mb-6">
-              지금 시작하세요
+              지금 참가하세요
             </h2>
             <p className="text-muted-foreground mb-10 max-w-md mx-auto">
-              DAKERTON에서 당신의 아이디어를 현실로 만들어보세요.
+              명세서를 읽고, 팀을 꾸리고, 결과물을 제출하세요.
             </p>
 
             <HackathonSearchBar />
