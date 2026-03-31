@@ -39,17 +39,17 @@ const ctaCards = [
 
 const carouselSlides = [
   {
-    img: '/carousel-1.jpg',
+    img: '/carousel-1.png',
     title: '팀 협업',
     desc: '함께 아이디어를 실현하세요',
   },
   {
-    img: '/carousel-2.jpg',
+    img: '/carousel-2.png',
     title: '수상의 순간',
     desc: '최고의 팀에게 주어지는 영광',
   },
   {
-    img: '/carousel-3.jpg',
+    img: '/carousel-3.png',
     title: '몰입 개발',
     desc: '한계를 넘는 코딩의 즐거움',
   },
