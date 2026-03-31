@@ -24,19 +24,28 @@ function setStorage<T>(key: string, value: T) {
   localStorage.setItem(key, JSON.stringify(value));
 }
 
+const SEED_VERSION = 2;
+
 export function initSeedData() {
   if (typeof window === "undefined") return;
-  if (!localStorage.getItem("hackathons"))
+  const currentVersion = Number(localStorage.getItem("seed_version") || "0");
+  const needsRefresh = currentVersion < SEED_VERSION;
+  if (!localStorage.getItem("hackathons") || needsRefresh)
     setStorage("hackathons", seedHackathons);
-  if (!localStorage.getItem("hackathon_details"))
+  if (!localStorage.getItem("hackathon_details") || needsRefresh)
     setStorage("hackathon_details", seedHackathonDetails);
-  if (!localStorage.getItem("teams")) setStorage("teams", seedTeams);
-  if (!localStorage.getItem("leaderboards"))
+  if (!localStorage.getItem("teams") || needsRefresh)
+    setStorage("teams", seedTeams);
+  if (!localStorage.getItem("leaderboards") || needsRefresh)
     setStorage("leaderboards", seedLeaderboards);
-  if (!localStorage.getItem("rankings")) setStorage("rankings", seedRankings);
+  if (!localStorage.getItem("rankings") || needsRefresh)
+    setStorage("rankings", seedRankings);
   if (!localStorage.getItem("submissions")) setStorage("submissions", []);
   if (!localStorage.getItem("invitations")) setStorage("invitations", []);
-  if (!localStorage.getItem("users")) setStorage("users", seedUsers);
+  if (!localStorage.getItem("users") || needsRefresh)
+    setStorage("users", seedUsers);
+  if (needsRefresh)
+    localStorage.setItem("seed_version", String(SEED_VERSION));
 }
 
 export function useLocalStorage<T>(key: string, fallback: T) {
