@@ -32,9 +32,10 @@ export default function Navbar() {
       <div className="container mx-auto flex items-center justify-between h-16 px-6">
         <Link
           href="/"
-          className={`text-xl font-bold tracking-tight ${
+          className={`font-bold tracking-tight ${
             isHero && !scrolled ? 'text-white' : 'text-primary'
           }`}
+          style={{ fontSize: '20px' }}
         >
           DAKERTON
         </Link>
@@ -64,7 +65,7 @@ export default function Navbar() {
           {user ? (
             <Link
               href="/profile"
-              className={`flex items-center gap-2 px-5 py-2 text-sm font-medium transition-colors border rounded-xl ${
+              className={`flex items-center gap-2 px-5 py-2 text-sm font-medium transition-colors border ${
                 isHero && !scrolled
                   ? 'text-white border-white/50 hover:bg-white/10'
                   : 'text-foreground border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800'

@@ -128,7 +128,7 @@ export default function Home() {
           className="relative z-10 max-w-4xl mx-auto"
         >
           <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold leading-tight mb-16 text-white tracking-tight">
-            아이디어를 현실로,
+            아이디어가 현실로,
             <br />
             해커톤의 시작
           </h1>
