@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/components/Toast';
-import { Team, Hackathon, HackathonDetail } from '@/lib/types';
+import { Team, Hackathon, HackathonDetail, TeamApplication } from '@/lib/types';
 import { Loading, Empty } from '@/components/UI';
 import { Badge } from '@/components/ui/badge';
 
@@ -31,6 +31,7 @@ function CampContent() {
   const [appliedTeams, setAppliedTeams] = useLocalStorage<
     Record<string, string>
   >('applied_teams', {});
+  const [applications, setApplications] = useLocalStorage<TeamApplication[]>('team_applications', []);
   const { user } = useAuth();
   const { toast } = useToast();
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
@@ -47,6 +48,7 @@ function CampContent() {
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [applyTarget, setApplyTarget] = useState<Team | null>(null);
   const [applyRole, setApplyRole] = useState<string | null>(null);
+  const [formOwnerRole, setFormOwnerRole] = useState<string>(user?.preferredPositions?.[0] || 'Frontend');
 
   const filtered = useMemo(
     () =>
@@ -80,12 +82,16 @@ function CampContent() {
     return d?.sections.overview.teamPolicy.maxTeamSize || 5;
   };
 
+  const getActualMemberCount = (teamCode: string) =>
+    1 + applications.filter((a) => a.teamCode === teamCode && a.status === 'accepted').length;
+
   const resetForm = () => {
     setFormName('');
     setFormIntro('');
     setFormLooking([]);
     setFormContact('');
     setFormHackathon(hackathonFilter || '');
+    setFormOwnerRole(user?.preferredPositions?.[0] || 'Frontend');
     setFormErrors({});
     setEditCode(null);
   };
@@ -97,6 +103,7 @@ function CampContent() {
     setFormLooking([...team.lookingFor]);
     setFormContact(team.contact.url);
     setFormHackathon(team.hackathonSlug);
+    setFormOwnerRole(team.ownerRole || user?.preferredPositions?.[0] || 'Frontend');
     setShowForm(true);
   };
 
@@ -119,6 +126,7 @@ function CampContent() {
                 intro: formIntro.trim(),
                 lookingFor: formLooking,
                 contact: { type: 'link', url: formContact.trim() || '#' },
+                ownerRole: formOwnerRole,
               }
             : t,
         ),
@@ -135,6 +143,8 @@ function CampContent() {
           lookingFor: formLooking,
           intro: formIntro.trim(),
           contact: { type: 'link', url: formContact.trim() || '#' },
+          ownerUserId: user?.id,
+          ownerRole: formOwnerRole,
           createdAt: new Date().toISOString(),
         },
         ...prev,
@@ -284,6 +294,22 @@ function CampContent() {
                 </div>
                 <div>
                   <label className="text-sm font-medium mb-2 block">
+                    내 포지션
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {positions.map((p) => (
+                      <button
+                        key={p}
+                        onClick={() => setFormOwnerRole(p)}
+                        className={`text-xs px-3 py-2 rounded-xl font-semibold transition-colors ${formOwnerRole === p ? 'bg-primary text-white' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500'}`}
+                      >
+                        {p}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-2 block">
                     모집 포지션
                   </label>
                   <div className="flex flex-wrap gap-2">
@@ -312,7 +338,7 @@ function CampContent() {
                     <select
                       value={formHackathon}
                       onChange={(e) => setFormHackathon(e.target.value)}
-                      className={inputCls}
+                      className={inputCls + " appearance-none pr-8 bg-[url('data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23888%22%20stroke-width%3D%222%22%3E%3Cpath%20d%3D%22M6%209l6%206%206-6%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[length:14px] bg-[right_0.75rem_center]"}
                     >
                       <option value="">없음</option>
                       {hackathons.map((h) => (
@@ -382,6 +408,14 @@ function CampContent() {
                     onClick={() => {
                       if (!user) {
                         setShowLoginPrompt(true);
+                        return;
+                      }
+                      if (t.ownerUserId === user.id) {
+                        toast('이미 참여중인 팀입니다.', 'error');
+                        return;
+                      }
+                      if (applications.some((a) => a.teamCode === t.teamCode && a.userId === user.id && a.status === 'accepted')) {
+                        toast('이미 참여중인 팀입니다.', 'error');
                         return;
                       }
                       const key = `${user.id}__${t.teamCode}`;
@@ -477,7 +511,7 @@ function CampContent() {
                   </div>
                   <div className="flex flex-col items-end justify-between shrink-0 self-stretch">
                     <span className="text-sm font-semibold">
-                      {t.memberCount}/{getMaxTeamSize(t.hackathonSlug)}
+                      {getActualMemberCount(t.teamCode)}/{getMaxTeamSize(t.hackathonSlug)}
                     </span>
                     <button
                       onClick={() => {
@@ -487,6 +521,14 @@ function CampContent() {
                         }
                         if (!user) {
                           setShowLoginPrompt(true);
+                          return;
+                        }
+                        if (t.ownerUserId === user.id) {
+                          toast('이미 참여중인 팀입니다.', 'error');
+                          return;
+                        }
+                        if (applications.some((a) => a.teamCode === t.teamCode && a.userId === user.id && a.status === 'accepted')) {
+                          toast('이미 참여중인 팀입니다.', 'error');
                           return;
                         }
                         const key = `${user.id}__${t.teamCode}`;
@@ -557,6 +599,21 @@ function CampContent() {
                         return;
                       }
                       const key = `${user!.id}__${applyTarget.teamCode}`;
+                      if (applyTarget.ownerUserId === user!.id) {
+                        toast('이미 참여중인 팀입니다.', 'error');
+                        setApplyTarget(null);
+                        setApplyRole(null);
+                        return;
+                      }
+                      const isAcceptedMember = applications.some(
+                        (a) => a.teamCode === applyTarget.teamCode && a.userId === user!.id && a.status === 'accepted'
+                      );
+                      if (isAcceptedMember) {
+                        toast('이미 참여중인 팀입니다.', 'error');
+                        setApplyTarget(null);
+                        setApplyRole(null);
+                        return;
+                      }
                       if (appliedTeams[key]) {
                         toast('이미 지원한 팀입니다.', 'error');
                         setApplyTarget(null);
@@ -567,6 +624,20 @@ function CampContent() {
                         ...prev,
                         [key]: applyRole,
                       }));
+                      setApplications((prev) => [
+                        ...prev,
+                        {
+                          id: `app-${Date.now()}`,
+                          teamCode: applyTarget.teamCode,
+                          teamName: applyTarget.name,
+                          hackathonSlug: applyTarget.hackathonSlug,
+                          userId: user!.id,
+                          nickname: user!.nickname,
+                          role: applyRole,
+                          status: 'pending',
+                          createdAt: new Date().toISOString(),
+                        },
+                      ]);
                       toast(
                         `${applyTarget.name}에 ${applyRole}(으)로 지원했습니다!`,
                       );

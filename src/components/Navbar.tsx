@@ -46,7 +46,7 @@ export default function Navbar() {
             <Link
               key={item.path}
               href={item.path}
-              className={`text-sm font-medium tracking-wide transition-colors ${
+              className={`text-base font-medium tracking-wide transition-colors ${
                 isHero && !scrolled
                   ? pathname === item.path
                     ? 'text-white'
