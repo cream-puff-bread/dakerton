@@ -4,6 +4,7 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Users, Plus, X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/components/Toast';
@@ -22,12 +23,17 @@ const positions = [
 
 function CampContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const hackathonFilter = searchParams.get('hackathon');
   const [teams, setTeams, loaded] = useLocalStorage<Team[]>('teams', []);
   const [hackathons] = useLocalStorage<Hackathon[]>('hackathons', []);
   const [details] = useLocalStorage<HackathonDetail[]>('hackathon_details', []);
+  const [appliedTeams, setAppliedTeams] = useLocalStorage<
+    Record<string, string>
+  >('applied_teams', {});
   const { user } = useAuth();
   const { toast } = useToast();
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [posFilter, setPosFilter] = useState<string | null>(null);
   const [hackFilter, setHackFilter] = useState<string | null>(hackathonFilter);
   const [search, setSearch] = useState('');
@@ -61,7 +67,11 @@ function CampContent() {
   const recommended = useMemo(() => {
     if (!user?.preferredPositions?.length) return [];
     return teams
-      .filter((t) => t.isOpen && t.lookingFor.some((lf) => user.preferredPositions.includes(lf)))
+      .filter(
+        (t) =>
+          t.isOpen &&
+          t.lookingFor.some((lf) => user.preferredPositions.includes(lf)),
+      )
       .slice(0, 3);
   }, [teams, user]);
 
@@ -343,22 +353,42 @@ function CampContent() {
             transition={{ delay: 0.12 }}
             className="mb-8 rounded-2xl border-2 border-primary/20 bg-primary/5 p-5"
           >
-            <h3 className="font-bold text-sm text-primary mb-3">✨ 나에게 맞는 팀 추천</h3>
+            <h3 className="font-bold text-sm text-primary mb-3">
+              ✨ 나에게 맞는 팀 추천
+            </h3>
             <div className="space-y-2">
               {recommended.map((t) => (
-                <div key={t.teamCode} className="flex items-center justify-between gap-3 py-2 px-3 rounded-xl bg-white dark:bg-zinc-900/60">
+                <div
+                  key={t.teamCode}
+                  className="flex items-center justify-between gap-3 py-2 px-3 rounded-xl bg-white dark:bg-zinc-900/60"
+                >
                   <div className="min-w-0">
                     <p className="font-semibold text-sm">{t.name}</p>
                     <div className="flex gap-1 mt-1">
                       {t.lookingFor
                         .filter((lf) => user!.preferredPositions.includes(lf))
                         .map((lf) => (
-                          <Badge key={lf} variant="default" className="text-[10px] !bg-zinc-100 !text-[#3b7cde] dark:!bg-zinc-800 !border-[#3b7cde]">{lf}</Badge>
+                          <Badge
+                            key={lf}
+                            variant="default"
+                            className="text-[10px] !bg-zinc-100 !text-[#3b7cde] dark:!bg-zinc-800 !border-[#3b7cde]"
+                          >
+                            {lf}
+                          </Badge>
                         ))}
                     </div>
                   </div>
                   <button
                     onClick={() => {
+                      if (!user) {
+                        setShowLoginPrompt(true);
+                        return;
+                      }
+                      const key = `${user.id}__${t.teamCode}`;
+                      if (appliedTeams[key]) {
+                        toast('이미 지원한 팀입니다.', 'error');
+                        return;
+                      }
                       setApplyTarget(t);
                       setApplyRole(null);
                     }}
@@ -426,7 +456,11 @@ function CampContent() {
                     </p>
                     <div className="flex flex-wrap gap-1.5 mb-1.5">
                       {t.lookingFor.map((lf) => (
-                        <Badge key={lf} variant="outline" className="text-[#3b7cde] border-[#3b7cde]">
+                        <Badge
+                          key={lf}
+                          variant="outline"
+                          className="text-[#3b7cde] border-[#3b7cde]"
+                        >
                           {lf}
                         </Badge>
                       ))}
@@ -449,6 +483,15 @@ function CampContent() {
                       onClick={() => {
                         if (!t.isOpen) {
                           toast('모집이 마감된 팀입니다.', 'error');
+                          return;
+                        }
+                        if (!user) {
+                          setShowLoginPrompt(true);
+                          return;
+                        }
+                        const key = `${user.id}__${t.teamCode}`;
+                        if (appliedTeams[key]) {
+                          toast('이미 지원한 팀입니다.', 'error');
                           return;
                         }
                         setApplyTarget(t);
@@ -477,7 +520,10 @@ function CampContent() {
               >
                 <h3 className="font-bold text-lg mb-1">역할 선택</h3>
                 <p className="text-sm text-muted-foreground mb-5">
-                  <span className="font-semibold text-foreground">{applyTarget.name}</span>에 어떤 역할로 지원하시겠어요?
+                  <span className="font-semibold text-foreground">
+                    {applyTarget.name}
+                  </span>
+                  에 어떤 역할로 지원하시겠어요?
                 </p>
                 <div className="flex flex-wrap gap-2 mb-6">
                   {applyTarget.lookingFor.map((role) => (
@@ -510,14 +556,20 @@ function CampContent() {
                         toast('역할을 선택해 주세요.', 'error');
                         return;
                       }
-                      setTeams((prev) =>
-                        prev.map((team) =>
-                          team.teamCode === applyTarget.teamCode
-                            ? { ...team, memberCount: team.memberCount + 1 }
-                            : team,
-                        ),
+                      const key = `${user!.id}__${applyTarget.teamCode}`;
+                      if (appliedTeams[key]) {
+                        toast('이미 지원한 팀입니다.', 'error');
+                        setApplyTarget(null);
+                        setApplyRole(null);
+                        return;
+                      }
+                      setAppliedTeams((prev) => ({
+                        ...prev,
+                        [key]: applyRole,
+                      }));
+                      toast(
+                        `${applyTarget.name}에 ${applyRole}(으)로 지원했습니다!`,
                       );
-                      toast(`${applyTarget.name}에 ${applyRole}(으)로 지원했습니다!`);
                       setApplyTarget(null);
                       setApplyRole(null);
                     }}
@@ -525,6 +577,42 @@ function CampContent() {
                     className="flex-1 text-[13px] px-4 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity disabled:opacity-30 disabled:cursor-not-allowed"
                   >
                     지원하기
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
+        {/* 로그인 필요 모달 */}
+        <AnimatePresence>
+          {showLoginPrompt && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                className="bg-white dark:bg-zinc-900 rounded-3xl p-7 max-w-sm w-full mx-4 shadow-2xl"
+              >
+                <h3 className="font-bold text-lg mb-1">로그인이 필요합니다</h3>
+                <p className="text-sm text-muted-foreground mb-5">
+                  팀에 지원하려면 먼저 로그인해 주세요.
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setShowLoginPrompt(false)}
+                    className="flex-1 text-[13px] px-4 py-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 font-semibold hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+                  >
+                    취소
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowLoginPrompt(false);
+                      router.push('/auth/login');
+                    }}
+                    className="flex-1 text-[13px] px-4 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity"
+                  >
+                    로그인하기
                   </button>
                 </div>
               </motion.div>
