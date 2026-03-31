@@ -105,6 +105,20 @@ export interface Team {
     type: string;
     url: string;
   };
+  ownerUserId?: string;
+  ownerRole?: string;
+  createdAt: string;
+}
+
+export interface TeamApplication {
+  id: string;
+  teamCode: string;
+  teamName: string;
+  hackathonSlug: string;
+  userId: string;
+  nickname: string;
+  role: string;
+  status: "pending" | "accepted" | "rejected";
   createdAt: string;
 }
 

@@ -1,4 +1,4 @@
-import { Hackathon, HackathonDetail, Team, Leaderboard, RankingEntry, User } from "@/lib/types";
+import { Hackathon, HackathonDetail, Team, Leaderboard, RankingEntry, User, TeamApplication } from "@/lib/types";
 
 export const seedHackathons: Hackathon[] = [
   {
@@ -240,6 +240,8 @@ export const seedTeams: Team[] = [
     lookingFor: ["Backend", "ML Engineer"],
     intro: "추론 최적화/경량화 실험을 함께 진행할 팀원을 찾습니다.",
     contact: { type: "link", url: "https://open.kakao.com/o/example1" },
+    ownerUserId: "user-demo",
+    ownerRole: "ML Engineer",
     createdAt: "2026-02-20T11:00:00+09:00",
   },
   {
@@ -251,6 +253,8 @@ export const seedTeams: Team[] = [
     lookingFor: ["Frontend", "Designer"],
     intro: "프롬프트 품질 점수화 + 개선 가이드 UX를 기획합니다.",
     contact: { type: "link", url: "https://forms.gle/example2" },
+    ownerUserId: "user-guest",
+    ownerRole: "PM",
     createdAt: "2026-02-18T18:30:00+09:00",
   },
   {
@@ -262,6 +266,8 @@ export const seedTeams: Team[] = [
     lookingFor: ["Frontend", "Designer"],
     intro: "명세서 기반으로 기본 기능을 빠르게 완성하고 UX 확장을 노립니다.",
     contact: { type: "link", url: "https://open.kakao.com/o/example3" },
+    ownerUserId: "user-demo",
+    ownerRole: "Backend",
     createdAt: "2026-03-04T11:00:00+09:00",
   },
   {
@@ -273,7 +279,56 @@ export const seedTeams: Team[] = [
     lookingFor: [],
     intro: "기획서-구현-문서화를 깔끔하게 맞추는 방향으로 진행합니다.",
     contact: { type: "link", url: "https://forms.gle/example4" },
+    ownerUserId: "user-guest",
+    ownerRole: "DevOps",
     createdAt: "2026-03-05T09:20:00+09:00",
+  },
+];
+
+export const seedTeamApplications: TeamApplication[] = [
+  {
+    id: "app-1",
+    teamCode: "T-ALPHA",
+    teamName: "Team Alpha",
+    hackathonSlug: "aimers-8-model-lite",
+    userId: "user-guest",
+    nickname: "hyunjin_ml",
+    role: "ML Engineer",
+    status: "pending",
+    createdAt: "2026-02-21T14:00:00+09:00",
+  },
+  {
+    id: "app-2",
+    teamCode: "T-HANDOVER-01",
+    teamName: "404found",
+    hackathonSlug: "daker-handover-2026-03",
+    userId: "user-guest",
+    nickname: "hyunjin_ml",
+    role: "Frontend",
+    status: "pending",
+    createdAt: "2026-03-06T10:30:00+09:00",
+  },
+  {
+    id: "app-3",
+    teamCode: "T-BETA",
+    teamName: "PromptRunners",
+    hackathonSlug: "monthly-vibe-coding-2026-02",
+    userId: "user-demo",
+    nickname: "alpha_dev",
+    role: "Frontend",
+    status: "accepted",
+    createdAt: "2026-02-19T09:00:00+09:00",
+  },
+  {
+    id: "app-4",
+    teamCode: "T-HANDOVER-02",
+    teamName: "LGTM",
+    hackathonSlug: "daker-handover-2026-03",
+    userId: "user-demo",
+    nickname: "alpha_dev",
+    role: "Backend",
+    status: "pending",
+    createdAt: "2026-03-06T15:00:00+09:00",
   },
 ];
 
@@ -330,7 +385,7 @@ export const seedLeaderboards: Leaderboard[] = [
 
 export const seedRankings: RankingEntry[] = [
   { rank: 1, nickname: "alpha_dev", points: 320, participationCount: 5 },
-  { rank: 2, nickname: "code_ninja", points: 280, participationCount: 4 },
+  { rank: 2, nickname: "hyunjin_ml", points: 280, participationCount: 4 },
   { rank: 3, nickname: "hack_master", points: 250, participationCount: 6 },
   { rank: 4, nickname: "ml_wizard", points: 210, participationCount: 3 },
   { rank: 5, nickname: "frontend_hero", points: 190, participationCount: 4 },
@@ -338,6 +393,13 @@ export const seedRankings: RankingEntry[] = [
   { rank: 7, nickname: "dev_explorer", points: 150, participationCount: 2 },
   { rank: 8, nickname: "ai_dreamer", points: 130, participationCount: 3 },
 ];
+
+export const seedApplicationsMap: Record<string, string> = {
+  "user-guest__T-ALPHA": "ML Engineer",
+  "user-guest__T-HANDOVER-01": "Frontend",
+  "user-demo__T-BETA": "Frontend",
+  "user-demo__T-HANDOVER-02": "Backend",
+};
 
 export const seedUsers: User[] = [
   {
@@ -353,7 +415,7 @@ export const seedUsers: User[] = [
     id: "user-guest",
     email: "guest@dakerton.com",
     password: "guest1234",
-    nickname: "code_ninja",
+    nickname: "hyunjin_ml",
     preferredPositions: ["ML Engineer", "Backend"],
     bio: "ML 엔지니어를 꿈꾸는 개발자입니다.",
     createdAt: "2026-02-01T10:00:00+09:00",

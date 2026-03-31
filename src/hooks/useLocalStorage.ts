@@ -7,6 +7,8 @@ import {
   seedLeaderboards,
   seedRankings,
   seedUsers,
+  seedTeamApplications,
+  seedApplicationsMap,
 } from "@/data/seed";
 
 function getStorage<T>(key: string, fallback: T): T {
@@ -24,7 +26,7 @@ function setStorage<T>(key: string, value: T) {
   localStorage.setItem(key, JSON.stringify(value));
 }
 
-const SEED_VERSION = 2;
+const SEED_VERSION = 4;
 
 export function initSeedData() {
   if (typeof window === "undefined") return;
@@ -42,6 +44,10 @@ export function initSeedData() {
     setStorage("rankings", seedRankings);
   if (!localStorage.getItem("submissions")) setStorage("submissions", []);
   if (!localStorage.getItem("invitations")) setStorage("invitations", []);
+  if (!localStorage.getItem("team_applications") || needsRefresh)
+    setStorage("team_applications", seedTeamApplications);
+  if (!localStorage.getItem("applied_teams") || needsRefresh)
+    setStorage("applied_teams", seedApplicationsMap);
   if (!localStorage.getItem("users") || needsRefresh)
     setStorage("users", seedUsers);
   if (needsRefresh)
