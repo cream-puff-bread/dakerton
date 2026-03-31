@@ -25,6 +25,7 @@ import {
   Submission,
   Invitation,
   Hackathon,
+  TeamApplication,
 } from '@/lib/types';
 import {
   Loading,
@@ -83,6 +84,7 @@ export default function HackathonDetailPage({
   const [appliedTeams, setAppliedTeams] = useLocalStorage<
     Record<string, string>
   >('applied_teams', {});
+  const [applications, setApplications] = useLocalStorage<TeamApplication[]>('team_applications', []);
   const { user } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
@@ -650,7 +652,7 @@ export default function HackathonDetailPage({
                         </div>
                         <div className="flex flex-col items-end justify-between shrink-0 self-stretch">
                           <span className="text-sm font-semibold">
-                            {t.memberCount}/{s.overview.teamPolicy.maxTeamSize}
+                            {1 + applications.filter((a) => a.teamCode === t.teamCode && a.status === 'accepted').length}/{s.overview.teamPolicy.maxTeamSize}
                           </span>
                           <button
                             onClick={() => {
@@ -660,6 +662,14 @@ export default function HackathonDetailPage({
                               }
                               if (!user) {
                                 setShowLoginPrompt(true);
+                                return;
+                              }
+                              if (t.ownerUserId === user.id) {
+                                toast('이미 참여중인 팀입니다.', 'error');
+                                return;
+                              }
+                              if (applications.some((a) => a.teamCode === t.teamCode && a.userId === user.id && a.status === 'accepted')) {
+                                toast('이미 참여중인 팀입니다.', 'error');
                                 return;
                               }
                               const key = `${user.id}__${t.teamCode}`;
@@ -730,6 +740,18 @@ export default function HackathonDetailPage({
                                 return;
                               }
                               const key = `${user!.id}__${applyTarget.teamCode}`;
+                              if (applyTarget.ownerUserId === user!.id) {
+                                toast('이미 참여중인 팀입니다.', 'error');
+                                setApplyTarget(null);
+                                setApplyRole(null);
+                                return;
+                              }
+                              if (applications.some((a) => a.teamCode === applyTarget.teamCode && a.userId === user!.id && a.status === 'accepted')) {
+                                toast('이미 참여중인 팀입니다.', 'error');
+                                setApplyTarget(null);
+                                setApplyRole(null);
+                                return;
+                              }
                               if (appliedTeams[key]) {
                                 toast('이미 지원한 팀입니다.', 'error');
                                 setApplyTarget(null);
@@ -740,6 +762,20 @@ export default function HackathonDetailPage({
                                 ...prev,
                                 [key]: applyRole,
                               }));
+                              setApplications((prev) => [
+                                ...prev,
+                                {
+                                  id: `app-${Date.now()}`,
+                                  teamCode: applyTarget.teamCode,
+                                  teamName: applyTarget.name,
+                                  hackathonSlug: applyTarget.hackathonSlug,
+                                  userId: user!.id,
+                                  nickname: user!.nickname,
+                                  role: applyRole,
+                                  status: 'pending',
+                                  createdAt: new Date().toISOString(),
+                                },
+                              ]);
                               toast(
                                 `${applyTarget.name}에 ${applyRole}(으)로 지원했습니다!`,
                               );

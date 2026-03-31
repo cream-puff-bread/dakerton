@@ -410,6 +410,14 @@ function CampContent() {
                         setShowLoginPrompt(true);
                         return;
                       }
+                      if (t.ownerUserId === user.id) {
+                        toast('이미 참여중인 팀입니다.', 'error');
+                        return;
+                      }
+                      if (applications.some((a) => a.teamCode === t.teamCode && a.userId === user.id && a.status === 'accepted')) {
+                        toast('이미 참여중인 팀입니다.', 'error');
+                        return;
+                      }
                       const key = `${user.id}__${t.teamCode}`;
                       if (appliedTeams[key]) {
                         toast('이미 지원한 팀입니다.', 'error');
@@ -515,6 +523,14 @@ function CampContent() {
                           setShowLoginPrompt(true);
                           return;
                         }
+                        if (t.ownerUserId === user.id) {
+                          toast('이미 참여중인 팀입니다.', 'error');
+                          return;
+                        }
+                        if (applications.some((a) => a.teamCode === t.teamCode && a.userId === user.id && a.status === 'accepted')) {
+                          toast('이미 참여중인 팀입니다.', 'error');
+                          return;
+                        }
                         const key = `${user.id}__${t.teamCode}`;
                         if (appliedTeams[key]) {
                           toast('이미 지원한 팀입니다.', 'error');
@@ -583,6 +599,21 @@ function CampContent() {
                         return;
                       }
                       const key = `${user!.id}__${applyTarget.teamCode}`;
+                      if (applyTarget.ownerUserId === user!.id) {
+                        toast('이미 참여중인 팀입니다.', 'error');
+                        setApplyTarget(null);
+                        setApplyRole(null);
+                        return;
+                      }
+                      const isAcceptedMember = applications.some(
+                        (a) => a.teamCode === applyTarget.teamCode && a.userId === user!.id && a.status === 'accepted'
+                      );
+                      if (isAcceptedMember) {
+                        toast('이미 참여중인 팀입니다.', 'error');
+                        setApplyTarget(null);
+                        setApplyRole(null);
+                        return;
+                      }
                       if (appliedTeams[key]) {
                         toast('이미 지원한 팀입니다.', 'error');
                         setApplyTarget(null);

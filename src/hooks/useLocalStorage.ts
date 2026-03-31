@@ -26,7 +26,7 @@ function setStorage<T>(key: string, value: T) {
   localStorage.setItem(key, JSON.stringify(value));
 }
 
-const SEED_VERSION = 4;
+const SEED_VERSION = 6;
 
 export function initSeedData() {
   if (typeof window === "undefined") return;

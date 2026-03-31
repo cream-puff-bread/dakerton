@@ -396,7 +396,7 @@ export default function ProfilePage() {
                   <div className="min-w-0">
                     <p className="font-medium truncate">{sub.content}</p>
                     <p className="text-xs text-muted-foreground">
-                      {sub.hackathonSlug} · {sub.type}
+                      {hackathons.find((h) => h.slug === sub.hackathonSlug)?.title || sub.hackathonSlug} · {sub.type}
                     </p>
                   </div>
                   <span className="text-xs text-muted-foreground shrink-0 ml-3">
