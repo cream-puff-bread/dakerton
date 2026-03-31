@@ -12,6 +12,7 @@ import {
   BarChart3,
   Info,
   AlertTriangle,
+  Upload,
 } from 'lucide-react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { useToast } from '@/components/Toast';
@@ -82,6 +83,7 @@ export default function HackathonDetailPage({
   const [submitMemo, setSubmitMemo] = useState('');
   const [submitContent, setSubmitContent] = useState('');
   const [submitType, setSubmitType] = useState('');
+  const [submitFile, setSubmitFile] = useState<File | null>(null);
   const [showInviteModal, setShowInviteModal] = useState(false);
 
   const detail = useMemo(
@@ -169,6 +171,7 @@ export default function HackathonDetailPage({
     ]);
     setSubmitContent('');
     setSubmitMemo('');
+    setSubmitFile(null);
     toast('제출 완료!');
   };
 
@@ -551,7 +554,7 @@ export default function HackathonDetailPage({
                           <p className="text-sm text-muted-foreground mb-2">{t.intro}</p>
                           <div className="flex gap-1.5 flex-wrap mb-1.5">
                             {t.lookingFor.map((lf) => (
-                              <Badge key={lf} variant="outline">{lf}</Badge>
+                              <Badge key={lf} variant="outline" className="text-[#3b7cde]">{lf}</Badge>
                             ))}
                           </div>
                           <p className="text-xs text-muted-foreground">{t.memberCount}/{s.overview.teamPolicy.maxTeamSize}명</p>
@@ -631,19 +634,44 @@ export default function HackathonDetailPage({
                     <h3 className="font-bold mb-4">제출하기</h3>
                     <div className="space-y-3">
                       {s.submit.allowedArtifactTypes.length > 1 && (
-                        <select value={submitType} onChange={(e) => setSubmitType(e.target.value)} className={inputCls}>
+                        <select value={submitType} onChange={(e) => { setSubmitType(e.target.value); setSubmitFile(null); setSubmitContent(''); }} className={inputCls}>
                           {s.submit.allowedArtifactTypes.map((t) => (
                             <option key={t} value={t}>{t.toUpperCase()}</option>
                           ))}
                         </select>
                       )}
-                      <input
-                        type="text"
-                        value={submitContent}
-                        onChange={(e) => setSubmitContent(e.target.value)}
-                        placeholder={submitType === 'url' ? 'https://...' : '제출 내용'}
-                        className={inputCls}
-                      />
+                      {submitType.includes('pdf') ? (
+                        <div>
+                          <label className="flex flex-col items-center justify-center gap-2 px-4 py-6 rounded-xl border-2 border-dashed border-zinc-200 dark:border-zinc-700 hover:border-primary dark:hover:border-primary cursor-pointer transition-colors bg-zinc-50 dark:bg-zinc-800/30">
+                            <Upload size={20} className="text-muted-foreground" />
+                            {submitFile ? (
+                              <span className="text-sm font-medium text-foreground">{submitFile.name}</span>
+                            ) : (
+                              <span className="text-sm text-muted-foreground">PDF 파일을 선택하세요</span>
+                            )}
+                            <input
+                              type="file"
+                              accept=".pdf"
+                              className="hidden"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  setSubmitFile(file);
+                                  setSubmitContent(file.name);
+                                }
+                              }}
+                            />
+                          </label>
+                        </div>
+                      ) : (
+                        <input
+                          type="text"
+                          value={submitContent}
+                          onChange={(e) => setSubmitContent(e.target.value)}
+                          placeholder={submitType === 'url' ? 'https://...' : '제출 내용'}
+                          className={inputCls}
+                        />
+                      )}
                       <textarea
                         value={submitMemo}
                         onChange={(e) => setSubmitMemo(e.target.value)}

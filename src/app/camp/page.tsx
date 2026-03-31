@@ -39,6 +39,8 @@ function CampContent() {
   const [formContact, setFormContact] = useState('');
   const [formHackathon, setFormHackathon] = useState(hackathonFilter || '');
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [applyTarget, setApplyTarget] = useState<Team | null>(null);
+  const [applyRole, setApplyRole] = useState<string | null>(null);
 
   const filtered = useMemo(
     () =>
@@ -351,20 +353,14 @@ function CampContent() {
                       {t.lookingFor
                         .filter((lf) => user!.preferredPositions.includes(lf))
                         .map((lf) => (
-                          <Badge key={lf} variant="default" className="text-[10px]">{lf}</Badge>
+                          <Badge key={lf} variant="default" className="text-[10px] !bg-zinc-100 !text-[#3b7cde] dark:!bg-zinc-800 !border-[#3b7cde]">{lf}</Badge>
                         ))}
                     </div>
                   </div>
                   <button
                     onClick={() => {
-                      setTeams((prev) =>
-                        prev.map((team) =>
-                          team.teamCode === t.teamCode
-                            ? { ...team, memberCount: team.memberCount + 1 }
-                            : team,
-                        ),
-                      );
-                      toast(`${t.name}에 지원했습니다!`);
+                      setApplyTarget(t);
+                      setApplyRole(null);
                     }}
                     className="text-xs px-3 py-2 rounded-xl bg-primary text-white font-semibold hover:opacity-90 transition-opacity shrink-0"
                   >
@@ -430,7 +426,7 @@ function CampContent() {
                     </p>
                     <div className="flex flex-wrap gap-1.5 mb-1.5">
                       {t.lookingFor.map((lf) => (
-                        <Badge key={lf} variant="outline">
+                        <Badge key={lf} variant="outline" className="text-[#3b7cde] border-[#3b7cde]">
                           {lf}
                         </Badge>
                       ))}
@@ -455,14 +451,8 @@ function CampContent() {
                           toast('모집이 마감된 팀입니다.', 'error');
                           return;
                         }
-                        setTeams((prev) =>
-                          prev.map((team) =>
-                            team.teamCode === t.teamCode
-                              ? { ...team, memberCount: team.memberCount + 1 }
-                              : team,
-                          ),
-                        );
-                        toast(`${t.name}에 지원했습니다!`);
+                        setApplyTarget(t);
+                        setApplyRole(null);
                       }}
                       disabled={!t.isOpen}
                       className="text-xs px-3 py-2 rounded-xl bg-primary text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-30 disabled:cursor-not-allowed"
@@ -475,6 +465,72 @@ function CampContent() {
             ))}
           </div>
         )}
+        {/* 지원 역할 선택 모달 */}
+        <AnimatePresence>
+          {applyTarget && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                className="bg-white dark:bg-zinc-900 rounded-3xl p-7 max-w-sm w-full mx-4 shadow-2xl"
+              >
+                <h3 className="font-bold text-lg mb-1">역할 선택</h3>
+                <p className="text-sm text-muted-foreground mb-5">
+                  <span className="font-semibold text-foreground">{applyTarget.name}</span>에 어떤 역할로 지원하시겠어요?
+                </p>
+                <div className="flex flex-wrap gap-2 mb-6">
+                  {applyTarget.lookingFor.map((role) => (
+                    <button
+                      key={role}
+                      onClick={() => setApplyRole(role)}
+                      className={`text-xs px-4 py-2.5 rounded-xl font-semibold transition-colors ${
+                        applyRole === role
+                          ? 'bg-primary text-white'
+                          : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700'
+                      }`}
+                    >
+                      {role}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      setApplyTarget(null);
+                      setApplyRole(null);
+                    }}
+                    className="flex-1 text-[13px] px-4 py-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 font-semibold hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+                  >
+                    취소
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (!applyRole) {
+                        toast('역할을 선택해 주세요.', 'error');
+                        return;
+                      }
+                      setTeams((prev) =>
+                        prev.map((team) =>
+                          team.teamCode === applyTarget.teamCode
+                            ? { ...team, memberCount: team.memberCount + 1 }
+                            : team,
+                        ),
+                      );
+                      toast(`${applyTarget.name}에 ${applyRole}(으)로 지원했습니다!`);
+                      setApplyTarget(null);
+                      setApplyRole(null);
+                    }}
+                    disabled={!applyRole}
+                    className="flex-1 text-[13px] px-4 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity disabled:opacity-30 disabled:cursor-not-allowed"
+                  >
+                    지원하기
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

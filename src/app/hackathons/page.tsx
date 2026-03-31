@@ -176,7 +176,7 @@ function HackathonsContent() {
                   </h3>
                   <div className="flex flex-wrap gap-1.5 mb-4">
                     {h.tags.map((tag) => (
-                      <Badge key={tag} variant="outline">
+                      <Badge key={tag} variant="outline" className="text-[#3b7cde]">
                         {tag}
                       </Badge>
                     ))}

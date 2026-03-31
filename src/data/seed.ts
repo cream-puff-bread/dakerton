@@ -46,7 +46,7 @@ export const seedHackathons: Hackathon[] = [
     participantCount: 65,
     period: {
       timezone: "Asia/Seoul",
-      submissionDeadlineAt: "2026-03-30T10:00:00+09:00",
+      submissionDeadlineAt: "2026-04-25T10:00:00+09:00",
       endAt: "2026-04-27T10:00:00+09:00",
     },
     links: {
