@@ -19,37 +19,37 @@ import { Hackathon } from '@/lib/types';
 const ctaCards = [
   {
     icon: Zap,
-    title: '해커톤 보러가기',
-    desc: '다양한 해커톤을 탐색하고 참가하세요',
+    title: '해커톤 탐색',
+    desc: '진행 중인 해커톤을 찾고 참가하세요',
     path: '/hackathons',
   },
   {
     icon: Users,
-    title: '팀 찾기',
-    desc: '나에게 맞는 팀원을 찾아보세요',
+    title: '팀 빌딩',
+    desc: '함께 할 팀원을 모집하거나 합류하세요',
     path: '/camp',
   },
   {
     icon: Trophy,
-    title: '랭킹 보기',
-    desc: '글로벌 랭킹에서 실력을 확인하세요',
+    title: '랭킹',
+    desc: '참가자 순위와 수상 기록을 확인하세요',
     path: '/rankings',
   },
 ];
 
 const carouselSlides = [
   {
-    img: '/carousel-1.jpg',
+    img: '/carousel-1.png',
     title: '팀 협업',
     desc: '함께 아이디어를 실현하세요',
   },
   {
-    img: '/carousel-2.jpg',
+    img: '/carousel-2.png',
     title: '수상의 순간',
     desc: '최고의 팀에게 주어지는 영광',
   },
   {
-    img: '/carousel-3.jpg',
+    img: '/carousel-3.png',
     title: '몰입 개발',
     desc: '한계를 넘는 코딩의 즐거움',
   },
@@ -108,7 +108,7 @@ export default function Home() {
   }, [next]);
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen overflow-x-hidden">
       {/* Hero */}
       <section className="relative min-h-screen flex flex-col items-center justify-center text-center px-4 overflow-hidden">
         <video
@@ -128,9 +128,9 @@ export default function Home() {
           className="relative z-10 max-w-4xl mx-auto"
         >
           <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold leading-tight mb-16 text-white tracking-tight">
-            아이디어가 현실이 되는
+            아이디어를 현실로,
             <br />
-            나만의 해커톤
+            해커톤의 시작
           </h1>
 
           <motion.div
@@ -152,14 +152,14 @@ export default function Home() {
             transition={{ delay: 0.6 }}
             className="mt-6 text-white/60 text-sm"
           >
-            팀을 찾고, 해커톤에 참가하고, 성과를 기록하세요.
+            해커톤을 탐색하고, 팀을 꾸리고, 결과를 제출하세요.
           </motion.p>
         </motion.div>
       </section>
 
       {/* Carousel */}
       <section
-        className="relative -mt-60 z-10 pb-12"
+        className="relative -mt-60 z-10 pb-12 overflow-hidden"
         style={{ perspective: '1200px' }}
       >
         <div className="container mx-auto max-w-7xl px-4">
@@ -308,7 +308,7 @@ export default function Home() {
               <br />한 곳에서.
             </h2>
             <p className="text-muted-foreground max-w-md mx-auto">
-              하나의 플랫폼에서 해커톤 탐색, 팀 빌딩, 성과 관리까지.
+              해커톤 탐색부터 팀 빌딩, 제출, 리더보드까지.
             </p>
           </motion.div>
 
@@ -355,7 +355,7 @@ export default function Home() {
               지금 시작하세요
             </h2>
             <p className="text-muted-foreground mb-10 max-w-md mx-auto">
-              DAKERTON에서 당신의 아이디어를 현실로 만들어보세요.
+              관심 있는 해커톤을 찾아보세요.
             </p>
 
             <HackathonSearchBar />
